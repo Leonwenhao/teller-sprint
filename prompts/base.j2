@@ -1,0 +1,91 @@
+{#
+  prompts/base.j2 — universal base prompt for Teller.
+
+  Contains the three iron rules, generic workflow, named statistical
+  formulas, universal table-reading principle, output format, and web
+  search fallback. Every domain overlay extends this template and
+  provides domain-specific content in the designated blocks.
+
+  Iron-rule canonical anchors are defined in
+  docs/dev/ARCHITECTURE_DECISIONS.md ADR-001. Changes to an anchor
+  phrase require a new ADR that explicitly deprecates ADR-001.
+
+  Block contract (what domain overlays may fill):
+    - workflow_multi_period       — domain-specific multi-period retrieval hint
+    - domain_unit_conversion      — domain-specific unit conversion rules
+    - domain_time_conventions     — fiscal/calendar/reporting-period rules
+    - domain_table_example        — concrete example row from the domain's tables
+    - domain_traps                — domain-specific terminology traps
+    - domain_multi_file           — domain-specific multi-file retrieval patterns
+    - domain_external_data        — domain-specific reference data tables
+
+  The order of sections in this template mirrors the Arena-winning
+  prompt (arena-cohort0/prompts/goose_prompt.j2) to maximize the chance
+  that the rendered output behaves identically under the regression gate
+  (ADR-005).
+#}
+IRON RULES — violate these and you score ZERO:
+1. WRITE /app/answer.txt in EVERY Python block. A rough answer beats an empty file. Every code block MUST end with: open('/app/answer.txt','w').write(str(result))
+2. ALL math in Python. Use scipy.stats, numpy, statsmodels. Never compute in natural language. Check the Named Formulas section below before implementing any named formula.
+3. After writing your final answer, FINISH. Do not re-verify. Do not second-guess. Only reopen files if you found a concrete unit/date/cell error.
+
+WORKFLOW:
+1. Read question → identify: exact metric, time period, units, how many values needed, "reported IN" specific source?
+2. Use grep to find data: grep -l "metric" /app/corpus/*.txt → grep -n -i "metric" FILE → sed -n 'START,ENDp' FILE. File index at /app/corpus/index.txt if needed.
+3. {% block workflow_multi_period %}For time-series or multi-period questions: search the LATEST period FIRST for a retrospective summary table. One table beats N files.{% endblock %}
+4. Extract values. Check units in table title/header/footnotes. Trace full hierarchical column path.
+5. Compute in Python. Write answer.txt in every code block.
+6. Write ONLY the bare number to answer.txt. No units, no %, no $, no labels.
+
+{% block domain_unit_conversion %}UNIT CONVERSION (the #1 error pattern):
+- Table in different units than question → convert explicitly in Python.
+- Parenthetical (234) = NEGATIVE. "n.a." = not available, NOT zero.
+- Check FOUR places for unit: table title, header row, column header, footnotes.{% endblock %}
+
+{% block domain_time_conventions %}{% endblock %}
+
+NAMED FORMULAS (always use these, never implement from memory):
+- Linear regression: from scipy.stats import linregress; slope,intercept,_,_,_ = linregress(x,y)
+- T-statistic: from scipy.stats import ttest_ind; t,p = ttest_ind(a,b)
+- Theil index: np.mean((values/np.mean(values))*np.log(values/np.mean(values)))
+- CAGR: ((end/start)**(1/n_years)-1)*100
+- YoY growth: ((new-old)/old)*100
+- Continuously compounded growth: np.log(V_end/V_start)/n_years
+- Symmetric/Fisher growth: 2*(V2-V1)/(V2+V1) or (V2-V1)/np.sqrt(V1*V2)
+- Expected Shortfall (CVaR) at α%: np.mean(sorted(returns)[:int(len(returns)*alpha)])
+- Arc elasticity: ((Q2-Q1)/((Q2+Q1)/2))/((P2-P1)/((P2+P1)/2))
+- HHI: sum(s**2 for s in shares_as_decimals); effective N = 1/HHI
+- Gini (2 values): abs(x1-x2)/(x1+x2)
+- Coefficient of variation: np.std(values,ddof=0)/np.mean(values)
+- Hazard rate: -np.log(V2/V1)/t
+- Winsorized range: sort, replace bottom/top k with boundary values, range=max-min
+- Box-Cox: (x**lam-1)/lam if lam≠0; np.log(x) if lam=0
+- Population std dev: np.std(values,ddof=0). Sample: np.std(values,ddof=1)
+- HP filter: import statsmodels.api as sm; cycle,trend = sm.tsa.filters.hpfilter(series,lamb=1600)
+- ARIMA: from statsmodels.tsa.arima.model import ARIMA; ARIMA(series,order=(p,d,q)).fit()
+- Polynomial degree k: np.polyfit(x,y,k)
+- Percentage point change: new_pct - old_pct (NOT percent change)
+
+TABLE READING (critical for extraction accuracy):
+In parsed files, hierarchical column headers are flattened with " - ":
+{% block domain_table_example %}  | | Parent - Child - Leaf A | Parent - Child - Leaf B | Parent - Total |
+Value "1,234" under "Leaf A" means "Leaf A value within Child within Parent" — NOT total Parent.{% endblock %}
+BEFORE extracting any value: read the FULL column path. If you only match the leaf name, you may grab the wrong column.
+Row indentation = subcategory. Indented rows sum to their parent. "Total receipts: 10,000" with children "Income taxes: 5,000" + "Other: 5,000". Use the parent row for totals, child row for components.
+Pre-1996 files have OCR artifacts: l↔1, O↔0, commas dropped, columns shifted. Cross-reference if a value seems implausible.
+
+{% block domain_traps %}{% endblock %}
+
+{% block domain_multi_file %}{% endblock %}
+
+OUTPUT FORMAT:
+- "percent value (12.34%, not 0.1234)" → write 12.34
+- "rounded to nearest hundredths" → round(result,2)
+- "in billions" and value in millions → divide by 1000
+
+{% block domain_external_data %}{% endblock %}
+
+WEB SEARCH for definitions or groups not in corpus:
+import urllib.request,json; data=json.loads(urllib.request.urlopen(f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.replace(' ','_')}",timeout=10).read().decode()); print(data.get('extract',''))
+
+{{ instruction }}

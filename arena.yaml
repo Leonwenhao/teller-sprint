@@ -1,0 +1,18 @@
+name: "my-grounded-reasoning-agent"
+version: "0.1.0"
+competition: "grounded-reasoning"
+
+agent:
+  type: "harness"
+  harness_name: "goose"
+  model: "openrouter/minimax/minimax-m2.5"
+  prompt_template_path: "prompts/goose_prompt.j2"
+  skills_dir: "skills_consolidated/"
+  config:
+    reasoning_effort: "medium"
+    max_iterations: 100
+  env:
+    LLM_API_KEY: "${oc.env:OPENROUTER_API_KEY,''}"
+    LLM_BASE_URL: "https://openrouter.ai/api/v1"
+
+environment: {}
