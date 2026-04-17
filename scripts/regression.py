@@ -1,340 +1,231 @@
 #!/usr/bin/env python3
-"""Standalone evaluation — run OfficeQA questions WITHOUT Arena CLI.
+"""Treasury regression runner — day-1 canary.
 
-Uses Docker directly + OpenHands SDK to evaluate questions against the
-Treasury Bulletin corpus. Scores answers using the official reward function.
+Runs the 20-question treasury regression set locked in
+docs/dev/ARCHITECTURE_DECISIONS.md ADR-004 and listed in
+tests/fixtures/officeqa/regression_twenty.json. Scores each answer via
+the official 1% fuzzy-tolerance reward function from OfficeQA and
+reports aggregate + per-tier + per-UID.
 
-Prerequisites:
-    - Docker running
-    - LLM endpoint available (local GPU via vLLM/ollama, or OpenRouter API)
-    - Set env vars: LLM_BASE_URL, LLM_API_KEY, LLM_MODEL (see .env.example)
+Usage::
 
-Usage:
-    # Run all 246 questions
-    source .env && python3 scripts/standalone_eval.py
+    source arena-cohort0/.env  # or any shell that sets OPENROUTER_API_KEY
+    python3 scripts/regression.py --set twenty
 
-    # Run specific questions
-    source .env && python3 scripts/standalone_eval.py --filter uid0023,uid0041,uid0097
+Exit codes:
+    0 — gate passed (≥70%)
+    1 — gate not met but above stop threshold (≥65% and <70%)
+    2 — below stop threshold (<65%) — day progression blocked
 
-    # Run first N questions
-    source .env && python3 scripts/standalone_eval.py --limit 20
-
-    # Resume from where you left off
-    source .env && python3 scripts/standalone_eval.py --resume
+Results are appended to results/regression_<set>_<timestamp>.json for
+day-N trend analysis.
 """
+from __future__ import annotations
 
 import argparse
 import csv
 import json
 import os
-import re
-import subprocess
 import sys
 import time
+from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 
-PROJECT_DIR = Path(__file__).parent.parent
-CSV_PATH = PROJECT_DIR / "officeqa_full.csv"
-SKILLS_DIR = PROJECT_DIR / "skills"
-RESULTS_FILE = PROJECT_DIR / "results" / "standalone_results.json"
-CORPUS_IMAGE = "ghcr.io/sentient-agi/harbor/officeqa-corpus:latest"
-MODEL = os.environ.get("LLM_MODEL", "openrouter/minimax/minimax-m2.5")
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(REPO / "tests" / "fixtures" / "officeqa"))
+
+from teller import Agent, Corpus  # noqa: E402
+
+CORPUS_DIR = REPO / "tests" / "fixtures" / "treasury_bulletins"
+QUESTIONS_CSV = REPO / "tests" / "fixtures" / "officeqa" / "officeqa_full.csv"
+SET_FILES = {
+    "twenty": REPO / "tests" / "fixtures" / "officeqa" / "regression_twenty.json",
+}
 
 
-def load_questions(filter_uids=None, limit=None):
-    """Load questions from CSV."""
-    with open(CSV_PATH) as f:
-        questions = list(csv.DictReader(f))
-    if filter_uids:
-        filter_set = {u.lower().replace("uid", "") for u in filter_uids}
-        questions = [q for q in questions if q["uid"].lower().replace("uid", "") in filter_set]
-    if limit:
-        questions = questions[:limit]
-    return questions
+def load_questions_by_uid() -> dict[str, dict]:
+    with open(QUESTIONS_CSV) as f:
+        return {row["uid"]: row for row in csv.DictReader(f)}
 
 
-def load_skills():
-    """Read all skills files and concatenate."""
-    skills_content = []
-    for skill_dir in sorted(SKILLS_DIR.iterdir()):
-        skill_file = skill_dir / "SKILL.md"
-        if skill_file.exists():
-            skills_content.append(f"# Skill: {skill_dir.name}\n\n{skill_file.read_text()}")
-    return "\n\n---\n\n".join(skills_content)
-
-
-def build_instruction(question_text):
-    """Build the full instruction with corpus info."""
-    return question_text + """
-
-## Available Resources
-
-You have access to the full U.S. Treasury Bulletin corpus at `/app/corpus/`. This directory contains 697 parsed Treasury Bulletin text files (Markdown with tables), one per monthly bulletin issue.
-
-**Corpus location:** `/app/corpus/`
-**File naming convention:** `treasury_bulletin_YYYY_MM.txt` (e.g., `treasury_bulletin_1941_01.txt`)
-**File listing:** `/app/corpus/index.txt`
-
-You must search through these files to find the relevant information to answer the question.
-
-## Output
-
-Write your final answer to `/app/answer.txt`. Numerical answers should be precise (scoring uses 1% tolerance).
-"""
-
-
-def run_question_docker(uid, instruction, skills_text, timeout=600):
-    """Run a single question using Docker + OpenHands SDK."""
-    container_name = f"officeqa-{uid.lower()}-{int(time.time())}"
-
-    api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENROUTER_API_KEY", "not-needed"))
-    base_url = os.environ.get("LLM_BASE_URL", "https://openrouter.ai/api/v1")
-
-    # Write skills to a temp file to mount
-    skills_dir = Path(f"/tmp/officeqa-skills-{uid.lower()}")
-    skills_dir.mkdir(parents=True, exist_ok=True)
-
-    # Copy skills directory structure
-    for skill_subdir in SKILLS_DIR.iterdir():
-        if skill_subdir.is_dir():
-            target = skills_dir / skill_subdir.name
-            target.mkdir(exist_ok=True)
-            skill_file = skill_subdir / "SKILL.md"
-            if skill_file.exists():
-                (target / "SKILL.md").write_text(skill_file.read_text())
-
-    # Create the agent runner script
-    runner_script = skills_dir / "run_standalone.py"
-    runner_script.write_text(f'''#!/usr/bin/env python3
-"""Standalone OpenHands SDK agent runner."""
-import os
-import sys
-
-# Install openhands-sdk if not present
-try:
-    import openhands_sdk
-except ImportError:
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "openhands-sdk", "-q"])
-    import openhands_sdk
-
-from openhands_sdk import Agent
-
-def main():
-    instruction = """{instruction.replace('"', '\\"').replace("'", "\\'")}"""
-
-    # Load skills
-    skill_paths = []
-    skills_base = "/tmp/skills"
-    if os.path.exists(skills_base):
-        for d in sorted(os.listdir(skills_base)):
-            skill_path = os.path.join(skills_base, d, "SKILL.md")
-            if os.path.exists(skill_path):
-                skill_paths.append(os.path.join(skills_base, d))
-
-    agent = Agent(
-        model=os.environ.get("LLM_MODEL", "{MODEL}"),
-        api_key=os.environ.get("LLM_API_KEY", "not-needed"),
-        base_url=os.environ.get("LLM_BASE_URL", "http://localhost:8000/v1"),
-        skill_paths=skill_paths if skill_paths else None,
-    )
-
-    result = agent.run(instruction)
-    print(f"Agent completed. Cost: ${{result.cost:.4f}}")
-
-if __name__ == "__main__":
-    main()
-''')
-
-    # For local GPU: host.docker.internal lets container reach host's vLLM/ollama
-    docker_cmd = [
-        "docker", "run", "--rm",
-        "--name", container_name,
-        "--add-host", "host.docker.internal:host-gateway",
-        "-e", f"LLM_API_KEY={api_key}",
-        "-e", f"LLM_BASE_URL={base_url}",
-        "-e", f"LLM_MODEL={MODEL}",
-        "-v", f"{skills_dir}:/tmp/skills:ro",
-        "-v", f"{runner_script}:/tmp/run_standalone.py:ro",
-        "--memory", "4g",
-        CORPUS_IMAGE,
-        "bash", "-c",
-        "pip install openhands-sdk -q 2>/dev/null && "
-        f"python3 /tmp/run_standalone.py && "
-        "cat /app/answer.txt 2>/dev/null || echo '__NO_ANSWER__'"
-    ]
-
-    try:
-        result = subprocess.run(
-            docker_cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        output = result.stdout.strip()
-
-        # Extract the answer (last line that's not a log message)
-        lines = output.strip().split("\n")
-        answer = lines[-1] if lines else "__NO_ANSWER__"
-
-        # If the answer is a log line, try to find the actual answer
-        if answer.startswith("[") or answer.startswith("Agent") or answer.startswith("pip"):
-            answer = "__NO_ANSWER__"
-
-        return {
-            "answer": answer,
-            "stdout": output[-500:],  # Last 500 chars
-            "stderr": result.stderr[-500:] if result.stderr else "",
-            "returncode": result.returncode,
-        }
-    except subprocess.TimeoutExpired:
-        subprocess.run(["docker", "kill", container_name], capture_output=True)
-        return {"answer": "__TIMEOUT__", "stdout": "", "stderr": "Timeout", "returncode": -1}
-    except Exception as e:
-        return {"answer": "__ERROR__", "stdout": "", "stderr": str(e), "returncode": -1}
-    finally:
-        # Cleanup
-        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
-        import shutil
-        shutil.rmtree(skills_dir, ignore_errors=True)
-
-
-def score_answer(expected, predicted, tolerance=0.01):
-    """Score an answer using fuzzy numeric matching (1% tolerance)."""
-    if not predicted or predicted in ("__NO_ANSWER__", "__TIMEOUT__", "__ERROR__"):
+def score_answer(expected: str, predicted: str | None, tolerance: float = 0.01) -> float:
+    """Score via the official OfficeQA reward, fall back to numeric compare."""
+    if not predicted:
         return 0.0
-
-    # Try importing the official reward function
     try:
-        sys.path.insert(0, str(PROJECT_DIR))
-        from reward import score_answer as official_score
+        from reward import score_answer as official_score  # type: ignore
+
         return official_score(expected, predicted, tolerance)
-    except ImportError:
+    except Exception:
         pass
 
-    # Fallback: simple numeric comparison
+    import re
+
+    def clean_num(s: str) -> float:
+        s = s.strip().replace(",", "").replace("%", "").replace("$", "")
+        s = re.sub(r"[^\d.\-]", "", s)
+        return float(s)
+
     try:
-        # Clean both values
-        def clean_num(s):
-            s = s.strip().replace(",", "").replace("%", "").replace("$", "")
-            s = re.sub(r'[^\d.\-]', '', s)
-            return float(s)
-
-        exp = clean_num(expected)
-        pred = clean_num(predicted)
-
-        if exp == 0:
-            return 1.0 if abs(pred) < tolerance else 0.0
-        return 1.0 if abs((pred - exp) / exp) <= tolerance else 0.0
+        e = clean_num(expected)
+        p = clean_num(predicted)
+        if e == 0:
+            return 1.0 if abs(p) < tolerance else 0.0
+        return 1.0 if abs((p - e) / e) <= tolerance else 0.0
     except (ValueError, ZeroDivisionError):
-        # String comparison fallback
-        return 1.0 if expected.strip().lower() == predicted.strip().lower() else 0.0
+        return 1.0 if expected.strip().lower() == (predicted or "").strip().lower() else 0.0
 
 
-def load_existing_results():
-    """Load previously saved results for resume support."""
-    if RESULTS_FILE.exists():
-        return json.loads(RESULTS_FILE.read_text())
-    return {}
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Teller treasury regression runner")
+    ap.add_argument("--set", default="twenty", choices=list(SET_FILES),
+                    help="Which regression set to run (default: twenty)")
+    ap.add_argument("--limit", type=int, default=None,
+                    help="Limit to first N questions (debugging)")
+    ap.add_argument("--filter", type=str, default=None,
+                    help="Comma-separated UIDs to run only")
+    args = ap.parse_args()
 
+    spec_path = SET_FILES[args.set]
+    spec = json.loads(spec_path.read_text())
+    selected = spec["questions"]
+    if args.filter:
+        want = {u.upper() for u in args.filter.split(",")}
+        selected = [q for q in selected if q["uid"].upper() in want]
+    if args.limit:
+        selected = selected[: args.limit]
 
-def save_results(results):
-    """Save results to JSON."""
-    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    RESULTS_FILE.write_text(json.dumps(results, indent=2))
+    by_uid = load_questions_by_uid()
+    missing = [q["uid"] for q in selected if q["uid"] not in by_uid]
+    if missing:
+        print(f"ERROR: UIDs missing from officeqa_full.csv: {missing}")
+        return 3
 
+    gate = spec["gate_threshold"]
+    stop = spec["stop_threshold"]
+    print(f"Regression set: {args.set} ({len(selected)} questions)")
+    print(f"Corpus: {CORPUS_DIR.relative_to(REPO)}")
+    print(f"Gate: ≥{int(gate * len(selected))}/{len(selected)} ({int(gate * 100)}%). Stop below: {int(stop * 100)}%")
+    print()
 
-def main():
-    parser = argparse.ArgumentParser(description="Standalone OfficeQA evaluation")
-    parser.add_argument("--filter", type=str, help="Comma-separated UIDs to test")
-    parser.add_argument("--limit", type=int, help="Max questions to run")
-    parser.add_argument("--resume", action="store_true", help="Skip already-scored questions")
-    parser.add_argument("--timeout", type=int, default=600, help="Timeout per question (seconds)")
-    args = parser.parse_args()
+    corpus = Corpus(CORPUS_DIR)
+    agent = Agent(domain="treasury", corpus=corpus)
 
-    # Check LLM config
-    base_url = os.environ.get("LLM_BASE_URL", "")
-    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("OPENROUTER_API_KEY", "")
-    if not base_url and not api_key:
-        print("ERROR: Set LLM_BASE_URL and LLM_API_KEY (see .env.example)")
-        print("  For local GPU: LLM_BASE_URL=http://host.docker.internal:8000/v1")
-        print("  For OpenRouter: LLM_API_KEY=sk-or-v1-... LLM_BASE_URL=https://openrouter.ai/api/v1")
-        sys.exit(1)
+    results: list[dict] = []
+    t_start = time.time()
 
-    print(f"  Model: {MODEL}")
-    print(f"  Endpoint: {base_url or 'default'}")
+    for i, spec_q in enumerate(selected, start=1):
+        uid = spec_q["uid"]
+        tier = spec_q["tier"]
+        row = by_uid[uid]
+        expected = row["answer"]
+        question = row["question"]
 
-    # Check Docker
-    if subprocess.run(["docker", "info"], capture_output=True).returncode != 0:
-        print("ERROR: Docker is not running")
-        sys.exit(1)
+        print(f"[{i}/{len(selected)}] {uid} ({tier}, {row.get('difficulty', '?')})")
+        print(f"    Q: {question[:140]}{'...' if len(question) > 140 else ''}")
 
-    # Pull corpus image
-    print(f"Ensuring corpus image is available: {CORPUS_IMAGE}")
-    subprocess.run(["docker", "pull", CORPUS_IMAGE], capture_output=True)
+        try:
+            result = agent.ask(question)
+            answer = result.answer
+            latency_s = result.latency_ms / 1000 if result.latency_ms else 0.0
+            abstained = result.abstained
+            reason = result.abstention_reason
+            error = None
+        except Exception as e:
+            answer = None
+            latency_s = 0.0
+            abstained = True
+            reason = f"exception: {e.__class__.__name__}"
+            error = str(e)
 
-    # Load questions
-    filter_uids = args.filter.split(",") if args.filter else None
-    questions = load_questions(filter_uids, args.limit)
-    print(f"Loaded {len(questions)} questions")
-
-    # Load existing results for resume
-    existing = load_existing_results() if args.resume else {}
-    skills_text = load_skills()
-
-    passed = 0
-    failed = 0
-    skipped = 0
-    total_cost = 0
-    results = existing.copy()
-
-    for i, q in enumerate(questions):
-        uid = q["uid"]
-
-        if args.resume and uid.lower() in {k.lower() for k in existing}:
-            prev = existing.get(uid, existing.get(uid.lower(), {}))
-            if prev.get("scored"):
-                if prev.get("correct"):
-                    passed += 1
-                else:
-                    failed += 1
-                skipped += 1
-                continue
-
-        print(f"\n[{i+1}/{len(questions)}] {uid} ({q.get('difficulty', '?')})...")
-
-        instruction = build_instruction(q["question"])
-        result = run_question_docker(uid, instruction, skills_text, args.timeout)
-
-        reward = score_answer(q["answer"], result["answer"])
+        reward = score_answer(expected, answer)
         correct = reward > 0
 
-        if correct:
-            passed += 1
-            print(f"  ✓ PASS (answer: {result['answer'][:50]})")
-        else:
-            failed += 1
-            print(f"  ✗ FAIL (got: {result['answer'][:50]}, expected: {q['answer'][:50]})")
+        mark = "✓ PASS" if correct else "✗ FAIL"
+        got = (answer[:60] + "...") if answer and len(answer) > 60 else (answer or "<none>")
+        exp_shown = (expected[:60] + "...") if len(expected) > 60 else expected
+        print(f"    {mark}  got={got!r}  expected={exp_shown!r}  ({latency_s:.1f}s)")
+        if abstained:
+            print(f"    abstained: {reason}")
 
-        results[uid] = {
-            "scored": True,
+        results.append({
+            "uid": uid,
+            "tier": tier,
+            "difficulty": row.get("difficulty", ""),
             "correct": correct,
             "reward": reward,
-            "agent_answer": result["answer"],
-            "expected_answer": q["answer"],
-            "difficulty": q.get("difficulty", ""),
-            "question": q["question"][:200],
-        }
+            "answer": answer,
+            "expected": expected,
+            "abstained": abstained,
+            "abstention_reason": reason,
+            "error": error,
+            "latency_s": latency_s,
+        })
 
-        # Save after each question (resume support)
-        save_results(results)
+    elapsed = time.time() - t_start
 
-    total = passed + failed
-    print(f"\n{'='*50}")
-    print(f"RESULTS: {passed}/{total} correct ({passed/total*100:.1f}%)")
-    print(f"Skipped (resumed): {skipped}")
-    print(f"Results saved to: {RESULTS_FILE}")
+    passed = sum(1 for r in results if r["correct"])
+    total = len(results)
+    accuracy = passed / total if total else 0.0
+    total_latency = sum(r["latency_s"] for r in results)
+
+    tier_stats: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    for r in results:
+        tier_stats[r["tier"]][1] += 1
+        if r["correct"]:
+            tier_stats[r["tier"]][0] += 1
+
+    print()
+    print("=" * 64)
+    print(f"RESULT: {passed}/{total} correct ({accuracy * 100:.1f}%)")
+    print(f"Total elapsed: {elapsed / 60:.1f} min; avg latency per Q: {total_latency / total:.1f}s")
+    print()
+    print("By tier:")
+    for tier in ("ALWAYS_PASS", "SWING", "ALWAYS_FAIL"):
+        p, t = tier_stats.get(tier, [0, 0])
+        print(f"  {tier:<14} {p}/{t}")
+
+    gate_passed = accuracy >= gate
+    should_stop = accuracy < stop
+
+    out_dir = REPO / "results"
+    out_dir.mkdir(exist_ok=True)
+    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    out_file = out_dir / f"regression_{args.set}_{ts}.json"
+    out_file.write_text(json.dumps({
+        "set": args.set,
+        "timestamp": ts,
+        "passed": passed,
+        "total": total,
+        "accuracy": accuracy,
+        "gate_threshold": gate,
+        "stop_threshold": stop,
+        "gate_passed": gate_passed,
+        "should_stop": should_stop,
+        "elapsed_minutes": elapsed / 60,
+        "avg_latency_s": total_latency / total if total else 0,
+        "per_tier": {tier: {"passed": p, "total": t} for tier, (p, t) in tier_stats.items()},
+        "per_question": results,
+    }, indent=2))
+    print()
+    print(f"Results: {out_file.relative_to(REPO)}")
+
+    if should_stop:
+        print()
+        print(f"⛔ STOP: {accuracy * 100:.1f}% is below the {int(stop * 100)}% stop threshold.")
+        print("Day-2 progression is blocked until the drift is diagnosed and restored.")
+        return 2
+    if not gate_passed:
+        print()
+        print(f"⚠ Gate NOT met: {accuracy * 100:.1f}% < {int(gate * 100)}% (but above stop threshold).")
+        print("Investigate variance; expected range per ADR-004 baseline is 65-75%.")
+        return 1
+    print()
+    print(f"✓ Gate passed: {accuracy * 100:.1f}% ≥ {int(gate * 100)}%. Day-1 regression complete.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

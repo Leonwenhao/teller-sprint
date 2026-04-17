@@ -1,0 +1,33 @@
+{
+  "set_name": "twenty",
+  "description": "20-question treasury regression gate. Authoritative source: docs/dev/ARCHITECTURE_DECISIONS.md ADR-004 and docs/dev/REGRESSION_SET_SELECTION.md.",
+  "locked_at": "2026-04-16",
+  "gate_threshold": 0.70,
+  "gate_threshold_reason": "≥14/20. Arena regression baseline is ~70.7% on the full 246-question set; day-1 20-question subset should match within variance.",
+  "stop_threshold": 0.65,
+  "stop_threshold_reason": "Below 65% (13/20) stops day-2 progression. Debug drift before proceeding.",
+  "questions": [
+    {"uid": "UID0002", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "single-file lookup", "expected": "507"},
+    {"uid": "UID0011", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "single-file page-number", "expected": "42"},
+    {"uid": "UID0024", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "cross-period ratio", "expected": "0.13"},
+    {"uid": "UID0064", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "multi-date averaging", "expected": "113864"},
+    {"uid": "UID0095", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "cross-period extraction", "expected": "0.154"},
+    {"uid": "UID0108", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "hard", "pattern": "multi-month + stat formula (MAD)", "expected": "1400.306"},
+    {"uid": "UID0152", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "easy", "pattern": "single-file (Jan 1939 bulletin)", "expected": "451"},
+    {"uid": "UID0190", "tier": "ALWAYS_PASS", "variance_bucket": "6/6", "difficulty": "hard", "pattern": "monthly time-series", "expected": "-11"},
+
+    {"uid": "UID0014", "tier": "SWING", "variance_bucket": "5/6", "difficulty": "easy", "pattern": "historical-period", "expected": "997.3 billion"},
+    {"uid": "UID0052", "tier": "SWING", "variance_bucket": "5/6", "difficulty": "easy", "pattern": "monthly time-series averaging", "expected": "2.23%"},
+    {"uid": "UID0168", "tier": "SWING", "variance_bucket": "5/6", "difficulty": "hard", "pattern": "1939 monthly grand totals", "expected": "566840"},
+    {"uid": "UID0127", "tier": "SWING", "variance_bucket": "4/6", "difficulty": "easy", "pattern": "ESF total assets; unit conversion", "expected": "35028267333.33", "failure_catalog_entry": "F-004"},
+    {"uid": "UID0199", "tier": "SWING", "variance_bucket": "4/6", "difficulty": "easy", "pattern": "gold bloc countries; external knowledge", "expected": "0.479", "failure_catalog_entry": "F-001"},
+    {"uid": "UID0220", "tier": "SWING", "variance_bucket": "3/6", "difficulty": "hard", "pattern": "reported IN temporal attribution", "expected": "27", "failure_catalog_entry": "F-002"},
+    {"uid": "UID0097", "tier": "SWING", "variance_bucket": "2/6", "difficulty": "hard", "pattern": "ESF stated capital vs total capital", "expected": "[8.124, 12.852]", "failure_catalog_entry": "F-003"},
+    {"uid": "UID0102", "tier": "SWING", "variance_bucket": "1/6", "difficulty": "hard", "pattern": "H-Spread statistical formula", "expected": "57.50"},
+
+    {"uid": "UID0041", "tier": "ALWAYS_FAIL", "variance_bucket": "0/6", "difficulty": "easy", "pattern": "canary: Theil index formula gap", "expected": "0.011"},
+    {"uid": "UID0057", "tier": "ALWAYS_FAIL", "variance_bucket": "0/6", "difficulty": "hard", "pattern": "canary: multi-file step exhaustion (12 values)", "expected": "[374,443, 381,327, 401,845, 433,432, 461,855, 478,957, 505,483, 595,307, 664,852, 731,821, 798,733, 854,741]"},
+    {"uid": "UID0055", "tier": "ALWAYS_FAIL", "variance_bucket": "0/6", "difficulty": "hard", "pattern": "canary: external-data period reasoning (WWII/Korea)", "expected": "0.0"},
+    {"uid": "UID0174", "tier": "ALWAYS_FAIL", "variance_bucket": "0/6", "difficulty": "hard", "pattern": "canary: arc elasticity formula + extraction", "expected": "-3.524"}
+  ]
+}

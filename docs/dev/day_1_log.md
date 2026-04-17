@@ -172,3 +172,83 @@ Baseline prediction: ~14/20 (70%), right at the gate. Expected regression run no
 6. First regression run. Target ≥14/20.
 7. Update ADR-004 concrete selection section with first-run score per UID.
 8. Close day 1 → SPRINT_STATUS.md update, hand off for day 2 kickoff.
+
+---
+
+## Session 1 continued — Leon's second approval round
+
+### 18:50 — Leon's second round
+
+- BLOCK-01: Option A approved (commit 697 files). README under `tests/fixtures/treasury_bulletins/README.md` documents provenance + size.
+- Migration: approved with additions (FINAL_REPORT.md → `docs/research/final_report.md`, journey.md → `docs/research/journey.md`). Done.
+- Judgment calls: all three approved. `_source_goose_prompt.j2` lives at `prompts/` root (not inside domains/).
+- **Harness correction:** Revised Dev Plan's "openhands-sdk" claim was wrong. Arena winner was **goose** (per recipe.yaml, arena.yaml, FINAL_REPORT.md §2.4). Write ADR-006, update the dev plan inline.
+- **Leon's meta-observation (saved as feedback memory):** For Arena-specific facts, the repo artifacts are authoritative, not his stated memory. Wrong twice in two days (corpus location, now harness). Pattern: verify before acting.
+- **Pulled-forward discipline:** do not pile on top of review gates. Every pull-forward item adds to the next review surface. Use blocked-waiting time for scratchpad updates, daily logs, drafting next ADR — not new implementation work.
+- **Git config:** set repo-local (not global). Env-var approach was the right pattern for the commit; now make it persistent locally.
+- **Prompt split annotation (ADR-005):** Leon signed. 3-replaced-line diff accepted as domain-neutral rephrasing.
+- **Regression set:** 8 ALWAYS-PASS and 8 SWING approved sight unseen. For slot 4 ALWAYS-FAIL, swap UID0055 only if a cleanly-diagnosed termination-signal ALWAYS-FAIL candidate exists; otherwise keep UID0055.
+- **Regression result bands:** 68-72% = close day 1; below 65% = stop and debug before day 2.
+
+### 19:00 — Termination-signal canary check
+
+Grepped notes/ for self-sabotage diagnostics. The "smoking gun self-sabotage" case is documented as **UID0021** (`notes/session10_journey.md:15,90`, `notes/codex_v12lean_context.md:109`), but UID0021 is SWING-4, not ALWAYS-FAIL — the overwrite-gate fix in v12A promoted it from always-failing to mostly-passing. No ALWAYS-FAIL question has a clean termination-signal diagnostic. **Per Leon's fallback, UID0055 retained.** Documented in ADR-004 with the check.
+
+### 19:10 — ADRs + memory + plan correction
+
+- `ARCHITECTURE_DECISIONS.md` — ADR-004 concrete UID list locked (all 20), ADR-005 Leon-annotated, ADR-006 written (harness correction with full evidence chain citing recipe.yaml, arena.yaml, FINAL_REPORT.md §2.4).
+- `~/.claude/projects/.../memory/feedback_arena_artifacts_authoritative.md` saved + pointer added to MEMORY.md.
+- `arena-cohort0/Revised_TELLER_DEVELOPMENT_PLAN.md` corrected inline (Architecture Principles section now reads "goose with auto-compaction at 80% context utilization").
+- `tests/fixtures/officeqa/regression_twenty.json` generated (20 UIDs + per-UID tier, variance bucket, difficulty, expected, pattern).
+- `git config --local user.email leon@dolores.research / user.name "Leon Liu"` set.
+
+### 19:20 — Goose install + Corpus abstraction + Agent.ask
+
+- `brew install block-goose-cli` → goose v1.31.0 installed.
+- `Corpus.describe` returns `{file_count: 697, total_mb: 361.9, date_range: (1939, 2025), has_index: true, ...}` against the fixture dir.
+- `Corpus.index()` parses `index.txt`, returns 697 basenames.
+- `Agent.ask` wraps goose subprocess. At call time it copies `recipes/treasury.yaml` into a temp workspace and substitutes `/app/corpus` → `corpus.path`, `/app/answer.txt` → `workspace/answer.txt`, so goose runs locally without requiring root-owned `/app` to exist. Environment variables pin `GOOSE_PROVIDER=openrouter` and `GOOSE_MODEL=<model name>`.
+- Error classes: `GooseNotFoundError`, `MissingAPIKeyError` — both with actionable install/export instructions.
+
+### 19:45 — Smoke test passed
+
+UID0002 (easy ALWAYS-PASS, expected `507`, question about Veterans Administration FY1934 expenditures) → Agent.ask returned `'507.0'` in 152.5s. Within 1% tolerance, counts as PASS. Pipeline validated end-to-end.
+
+### 19:55 — Regression kicked off
+
+`scripts/regression.py --set twenty` running in background (ID `bk26gieqj`). Expected elapsed: ~50 min at ~2.5 min/question. Goal: ≥14/20 (70%). Stop threshold: <13/20 (65%).
+
+---
+
+### 20:49 — Regression completed at 13/20 = 65.0 %
+
+Exactly at stop boundary. Not the clear pass I projected, but below the 68-72 % expected range. Failure pattern looked infrastructural: three 0-second `no_answer_file_written` exits (UID0190, UID0052, UID0168) in the middle of the run. Escalated to Leon. He approved diagnose-and-rerun.
+
+### 21:10 — SQLite-race hypothesis (wrong)
+
+Inspected `~/.local/state/goose/logs/cli/2026-04-16/`. Two log files showed multiple `Recipe execution started` within 15-35 ms but only one `Headless session started` each. The 4 MB `sessions.db-wal` file suggested active SQLite WAL contention. Wrote ADR-007 proposing `--name <uuid>` + 300 ms settle delay. Implemented. Smoke-tested UID0190 standalone: **still failed at 0.4 s**. Hypothesis refuted.
+
+### 21:25 — Newline correlation check (right)
+
+Counted newlines in question text across all 20 regression UIDs. Perfect segregation: 3 zero-second failures have 1, 1, 6 newlines respectively; all 13 passes have 0 newlines; all 3 genuine 600 s timeouts have 0 newlines. `--params instruction=<text with \n>` breaks goose's CLI parser. One-line fix: `instruction_arg = " ".join(question.split())` before passing to `--params`.
+
+Smoke test UID0190 post-fix: returns `-11` in 79 s. Fix validated. ADR-007 rewritten with the correct root cause + the diagnostic lesson.
+
+### 21:45 — Rerun of UID0190, UID0052, UID0168
+
+All three reached the model this time. All three failed, but in different modes than before:
+
+- UID0190 → `-54` vs expected `-11`. MiniMax stochastic variance (same question returned `-11` in the pre-rerun smoke test).
+- UID0052 → `2.26` vs expected `2.23 %`. 1.34 % off, just outside the 1 % fuzzy tolerance.
+- UID0168 → timeout_600s. Hard multi-month extraction; 600 s budget insufficient.
+
+Net score unchanged at 13/20 = 65 %. Per Leon's stop-and-escalate rule for different-mode failures, stopped and escalated. Leon approved Option 1: close day 1 at 65 % as the honest baseline.
+
+### 22:05 — Close day 1
+
+Three lock-in items per Leon:
+1. ADR-004 — added Day-1 Run-1 Baseline table (all 20 per-UID outcomes) and Forward-Looking Notes for UID0190 (variance), UID0052 (tolerance-edge), UID0168 (timeout-budget). Day-2 Gate Threshold Reset section: **stop below 12/20**, warn at 12/20, pass at ≥ 13/20. 14/20 pre-run projection explicitly retired.
+2. `SPRINT_STATUS.md` — Hard Gates section rewritten with the new thresholds and a note against reverting under schedule pressure. Bootstrap checklist includes `METHODOLOGY.md` for future sessions.
+3. `METHODOLOGY.md` — new file with three cross-day working principles: cheapest-discriminating-test-first (demonstrated by ADR-007's diagnosis arc), Arena-artifacts-authoritative, and don't-pull-forward-when-blocked-waiting.
+
+**Day 1 closed.** Second commit imminent with Agent.ask fix, ADR-007, updated ADR-004, regression results, SPRINT_STATUS, and METHODOLOGY.

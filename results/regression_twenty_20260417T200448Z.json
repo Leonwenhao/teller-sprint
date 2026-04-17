@@ -1,0 +1,64 @@
+{
+  "set": "twenty",
+  "timestamp": "20260417T200448Z",
+  "passed": 0,
+  "total": 3,
+  "accuracy": 0.0,
+  "gate_threshold": 0.7,
+  "stop_threshold": 0.65,
+  "gate_passed": false,
+  "should_stop": true,
+  "elapsed_minutes": 11.965364015102386,
+  "avg_latency_s": 239.19866666666667,
+  "per_tier": {
+    "ALWAYS_PASS": {
+      "passed": 0,
+      "total": 1
+    },
+    "SWING": {
+      "passed": 0,
+      "total": 2
+    }
+  },
+  "per_question": [
+    {
+      "uid": "UID0190",
+      "tier": "ALWAYS_PASS",
+      "difficulty": "hard",
+      "correct": false,
+      "reward": 0.0,
+      "answer": "-54",
+      "expected": "-11",
+      "abstained": false,
+      "abstention_reason": null,
+      "error": null,
+      "latency_s": 30.479
+    },
+    {
+      "uid": "UID0052",
+      "tier": "SWING",
+      "difficulty": "easy",
+      "correct": false,
+      "reward": 0.0,
+      "answer": "2.26",
+      "expected": "2.23%",
+      "abstained": false,
+      "abstention_reason": null,
+      "error": null,
+      "latency_s": 87.098
+    },
+    {
+      "uid": "UID0168",
+      "tier": "SWING",
+      "difficulty": "hard",
+      "correct": false,
+      "reward": 0.0,
+      "answer": null,
+      "expected": "566840",
+      "abstained": true,
+      "abstention_reason": "timeout_600s",
+      "error": null,
+      "latency_s": 600.019
+    }
+  ]
+}
