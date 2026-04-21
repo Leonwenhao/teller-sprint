@@ -1,0 +1,373 @@
+{
+  "set_name": "sec_twenty_five",
+  "description": "25-question SEC filings test set across 10 companies \u00d7 3 tiers. Authoritative source: docs/dev/ARCHITECTURE_DECISIONS.md ADR-002 (reason codes) and day-3 scope in docs/dev/SPRINT_STATUS.md. Schema family mirrors tests/fixtures/officeqa/regression_twenty.json.",
+  "locked_at": "2026-04-18",
+  "gate": {
+    "tier_1_2_accuracy_threshold": 0.8,
+    "tier_1_2_threshold_reason": "\u226515/18 correct combined across tier-1 consolidated and tier-2 multi-period. 3-fail headroom for prompt-iteration variance.",
+    "tier_3_abstention_threshold": 0.6,
+    "tier_3_threshold_reason": "\u22655/7 correctly abstained AND surfaced reason='segment_level_dimensional'. 2-fail headroom. An abstention with the wrong reason code (xbrl_unreadable, not_tagged, xbrl_instance_not_found, concept_unknown, xbrl_period_not_found, xbrl_taxonomy_uncached) scores 0, per day-3 scoring contract: metric is 'correctly abstained', not 'abstained'. Rules out gaming by over-abstention.",
+    "scoring_contract": {
+      "tier_1_2": "Correct iff official OfficeQA-style 1% fuzzy reward scores >0 against expected_answer. Abstention on a consolidated/multi-period question scores 0.",
+      "tier_3": "Correct iff result.abstained == true AND result.abstention_reason == expected_abstention_reason (i.e., 'segment_level_dimensional'). Returning any numeric answer scores 0. Abstaining with a different reason code scores 0."
+    }
+  },
+  "expected_values_status": "verified",
+  "expected_values_note": "expected_answer is null for all tier-1/2 questions at fixture-draft time. Values are populated after the day-3 download phase by reading the actual downloaded 10-K (via teller inspect / direct XBRL read against the tagged consolidated fact). This two-phase pattern keeps ground truth honest \u2014 no fabricated expected values. Tier-3 questions have no expected_answer by design (correct outcome is abstention).",
+  "corpus_root": "tests/fixtures/sec_filings/corpus",
+  "companies": {
+    "AAPL": {
+      "cik": "0000320193",
+      "fiscal_year_end_month": 9
+    },
+    "MSFT": {
+      "cik": "0000789019",
+      "fiscal_year_end_month": 6
+    },
+    "GOOGL": {
+      "cik": "0001652044",
+      "fiscal_year_end_month": 12
+    },
+    "AMZN": {
+      "cik": "0001018724",
+      "fiscal_year_end_month": 12
+    },
+    "NVDA": {
+      "cik": "0001045810",
+      "fiscal_year_end_month": 1
+    },
+    "JPM": {
+      "cik": "0000019617",
+      "fiscal_year_end_month": 12
+    },
+    "WMT": {
+      "cik": "0000104169",
+      "fiscal_year_end_month": 1
+    },
+    "XOM": {
+      "cik": "0000034088",
+      "fiscal_year_end_month": 12
+    },
+    "PFE": {
+      "cik": "0000078003",
+      "fiscal_year_end_month": 12
+    },
+    "TSLA": {
+      "cik": "0001318605",
+      "fiscal_year_end_month": 12
+    }
+  },
+  "questions": [
+    {
+      "uid": "SEC0001",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "AAPL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Apple's total net sales in fiscal year 2025?",
+      "pattern": "top-line revenue; proven day-2 smoke case",
+      "concept_hint": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "expected_answer": "416161",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0002",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "MSFT",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Microsoft's total revenue in fiscal year 2025?",
+      "pattern": "top-line revenue; off-fiscal (June). MSFT tags under ASC 606 concept (RevenueFromContractWithCustomerExcludingAssessedTax), not legacy us-gaap:Revenues. Agent keyword\u2192concept map must cover both families.",
+      "concept_hint": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "expected_answer": "281724",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0003",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "WMT",
+      "form": "10-K",
+      "fiscal_period": "FY2026",
+      "question": "What was Walmart's total revenue in fiscal year 2026?",
+      "pattern": "top-line revenue; off-fiscal (Jan-end 2026). Fast-forward from FY25 plan because WMT FY26 10-K is more recent than target FY25.",
+      "concept_hint": "us-gaap:Revenues",
+      "expected_answer": "713163",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0004",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "MSFT",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Microsoft's net income in fiscal year 2025?",
+      "pattern": "consolidated net income",
+      "concept_hint": "us-gaap:NetIncomeLoss",
+      "expected_answer": "101832",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0005",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "NVDA",
+      "form": "10-K",
+      "fiscal_period": "FY2026",
+      "question": "What was NVIDIA's net income in fiscal year 2026?",
+      "pattern": "consolidated net income; off-fiscal (Jan-end 2026). Fast-forward from FY25 plan because NVDA FY26 10-K is more recent than target FY25.",
+      "concept_hint": "us-gaap:NetIncomeLoss",
+      "expected_answer": "120067",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0006",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "JPM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were JPMorgan Chase's total assets at the end of fiscal year 2025?",
+      "pattern": "balance-sheet instant; financial-services taxonomy",
+      "concept_hint": "us-gaap:Assets",
+      "expected_answer": "4424900",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0007",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "XOM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were ExxonMobil's total assets at the end of fiscal year 2025?",
+      "pattern": "balance-sheet instant; energy-sector taxonomy",
+      "concept_hint": "us-gaap:Assets",
+      "expected_answer": "448980",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0008",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "GOOGL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Alphabet's cash and cash equivalents balance at the end of fiscal year 2025?",
+      "pattern": "balance-sheet instant; cash-only (not cash + marketable securities)",
+      "concept_hint": "us-gaap:CashAndCashEquivalentsAtCarryingValue",
+      "expected_answer": "30708",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0009",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "AMZN",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Amazon's cash and cash equivalents balance at the end of fiscal year 2025?",
+      "pattern": "balance-sheet instant",
+      "concept_hint": "us-gaap:CashAndCashEquivalentsAtCarryingValue",
+      "expected_answer": "86810",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0010",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "TSLA",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Tesla's diluted earnings per share in fiscal year 2025?",
+      "pattern": "per-share metric; shares-outstanding denominator",
+      "concept_hint": "us-gaap:EarningsPerShareDiluted",
+      "expected_answer": "1.08",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0011",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "AAPL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "By what percentage did Apple's total net sales change from fiscal year 2024 to fiscal year 2025?",
+      "pattern": "YoY% delta; two consolidated facts same filing",
+      "concept_hint": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "expected_answer": "0.0643",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0012",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "NVDA",
+      "form": "10-K",
+      "fiscal_period": "FY2026",
+      "question": "By what percentage did NVIDIA's revenue change from fiscal year 2025 to fiscal year 2026?",
+      "pattern": "YoY% delta; high-growth stressor. Fast-forward from FY24\u2192FY25 to FY25\u2192FY26 because NVDA FY26 10-K is more recent than target FY25.",
+      "concept_hint": "us-gaap:Revenues",
+      "expected_answer": "0.6547",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0013",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "MSFT",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Microsoft's net income in each of fiscal years 2023, 2024, and 2025?",
+      "pattern": "3-year series; tests comparatives extraction from single 10-K",
+      "concept_hint": "us-gaap:NetIncomeLoss",
+      "expected_answer": "[101832, 88136, 72361]",
+      "expected_answer_verified": true,
+      "answer_format_note": "Expected answer is a 3-tuple/list; scoring requires all three values within 1% tolerance."
+    },
+    {
+      "uid": "SEC0014",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "PFE",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Pfizer's total revenue in fiscal year 2025?",
+      "pattern": "restatement canary; pharma commonly restates prior-period revenue. Expected answer is the FY25 filing's reported FY25 number (not any earlier disclosure).",
+      "concept_hint": "us-gaap:Revenues",
+      "expected_answer": "62579",
+      "expected_answer_verified": true,
+      "restatement_note": "If the FY2025 filing restates prior-period revenue, agent must still report FY2025's own-period figure correctly. Restatement handling of prior periods is day-4/5 scope."
+    },
+    {
+      "uid": "SEC0015",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "GOOGL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "How much did Alphabet's cash and cash equivalents change from the end of fiscal year 2024 to the end of fiscal year 2025?",
+      "pattern": "balance-sheet delta; instant-to-instant",
+      "concept_hint": "us-gaap:CashAndCashEquivalentsAtCarryingValue",
+      "expected_answer": "7242",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0016",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "JPM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were JPMorgan Chase's total assets at the end of each of fiscal years 2024 and 2025?",
+      "pattern": "2-year instant series; financial-services scale ($3-4T)",
+      "concept_hint": "us-gaap:Assets",
+      "expected_answer": "[4424900, 4002814]",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0017",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "XOM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were ExxonMobil's total assets at the end of each of fiscal years 2024 and 2025?",
+      "pattern": "2-year instant series; energy-sector taxonomy",
+      "concept_hint": "us-gaap:Assets",
+      "expected_answer": "[448980, 453475]",
+      "expected_answer_verified": true
+    },
+    {
+      "uid": "SEC0018",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "PFE",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Pfizer's net income attributable to Pfizer Inc. in fiscal year 2025?",
+      "pattern": "consolidated net income; pharma filer. Reassigned from concept-family-drift placeholder after drift surfaced organically via the existing revenue questions.",
+      "concept_hint": "us-gaap:NetIncomeLoss",
+      "expected_answer": "7771",
+      "expected_answer_verified": true,
+      "placeholder_resolution_required": false,
+      "reassignment_note": "Original SEC0018 was a concept-family-drift stressor placeholder. Drift surfaced organically: SEC0001 (AAPL) and SEC0002 (MSFT) tag revenue under us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax (ASC 606). SEC0003 (WMT), SEC0012 (NVDA), SEC0014 (PFE) tag revenue under legacy us-gaap:Revenues. No standalone stressor needed; slot reassigned to PFE net income to flesh out PFE beyond the SEC0014 restatement canary. ADR-008 stays Reserved."
+    },
+    {
+      "uid": "SEC0019",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "AAPL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were Apple's net sales in Greater China in fiscal year 2025?",
+      "pattern": "geographic segment; requires srt:StatementGeographicalAxis member",
+      "segment_axis": "srt:StatementGeographicalAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0020",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "GOOGL",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Google Services segment revenue in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0021",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "AMZN",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Amazon Web Services (AWS) revenue in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0022",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "TSLA",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Tesla's automotive segment revenue in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0023",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "XOM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What were ExxonMobil's upstream segment earnings in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0024",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "MSFT",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was Microsoft's Productivity and Business Processes segment revenue in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    },
+    {
+      "uid": "SEC0025",
+      "tier": "TIER_3_SEGMENT_ABSTAIN",
+      "company": "JPM",
+      "form": "10-K",
+      "fiscal_period": "FY2025",
+      "question": "What was JPMorgan Chase's Consumer & Community Banking segment net income in fiscal year 2025?",
+      "pattern": "business segment; us-gaap:StatementBusinessSegmentsAxis; financial-services extension taxonomy",
+      "segment_axis": "us-gaap:StatementBusinessSegmentsAxis",
+      "expected_answer": null,
+      "expected_abstention": true,
+      "expected_abstention_reason": "segment_level_dimensional"
+    }
+  ]
+}

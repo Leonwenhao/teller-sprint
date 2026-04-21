@@ -11,6 +11,13 @@
   phrase require a new ADR that explicitly deprecates ADR-001.
 
   Block contract (what domain overlays may fill):
+    - early_abstention            — early-exit classification that fires BEFORE the
+                                    WORKFLOW's retrieval step; when filled, the overlay
+                                    can direct the LLM to write an ABSTAIN:<reason_code>
+                                    sentinel on first block and FINISH. Agent.ask lifts
+                                    the sentinel into Result.abstained without running
+                                    post-validation. Default empty — domains without
+                                    early-exit classes leave it blank.
     - workflow_multi_period       — domain-specific multi-period retrieval hint
     - domain_unit_conversion      — domain-specific unit conversion rules
     - domain_time_conventions     — fiscal/calendar/reporting-period rules
@@ -28,6 +35,8 @@ IRON RULES — violate these and you score ZERO:
 1. WRITE /app/answer.txt in EVERY Python block. A rough answer beats an empty file. Every code block MUST end with: open('/app/answer.txt','w').write(str(result))
 2. ALL math in Python. Use scipy.stats, numpy, statsmodels. Never compute in natural language. Check the Named Formulas section below before implementing any named formula.
 3. After writing your final answer, FINISH. Do not re-verify. Do not second-guess. Only reopen files if you found a concrete unit/date/cell error.
+
+{% block early_abstention %}{% endblock %}
 
 WORKFLOW:
 1. Read question → identify: exact metric, time period, units, how many values needed, "reported IN" specific source?

@@ -35,3 +35,6 @@ downloads/
 
 # Telemetry output (local dev)
 .teller/
+
+# Claude Code session state
+.claude/

@@ -30,6 +30,11 @@ class XBRLValidation:
     domain does not support XBRL at all. When `performed` is True,
     `agreed` indicates whether the LLM-extracted value matches the
     tagged fact within tolerance.
+
+    `reason` carries a machine-readable code when `performed=False` so
+    the agent and downstream callers can branch on the abstention class
+    (segment-level vs malformed filing vs uncached taxonomy) without
+    string-matching on `note`.
     """
 
     performed: bool
@@ -37,6 +42,7 @@ class XBRLValidation:
     gaap_concept: Optional[str] = None
     tagged_value: Optional[str] = None
     note: Optional[str] = None
+    reason: Optional[str] = None
 
 
 @dataclass

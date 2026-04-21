@@ -27,6 +27,7 @@ dependencies = [
     "jinja2>=3.1",
     "click>=8.1",
     "rich>=13.0",
+    "arelle-release==2.39.6",
 ]
 
 [project.optional-dependencies]
@@ -49,3 +50,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "integration: tests that hit live external services (SEC EDGAR, OpenRouter); deselected by default",
+]
+addopts = "-m 'not integration'"

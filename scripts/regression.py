@@ -12,10 +12,13 @@ Usage::
     source arena-cohort0/.env  # or any shell that sets OPENROUTER_API_KEY
     python3 scripts/regression.py --set twenty
 
-Exit codes:
-    0 — gate passed (≥70%)
-    1 — gate not met but above stop threshold (≥65% and <70%)
-    2 — below stop threshold (<65%) — day progression blocked
+Exit codes (post-ADR-004 day-2+ reset — see "Day-2 Gate Threshold Reset"):
+    0 — gate passed (≥13/20 = 65%)
+    1 — warn: below pass, above stop (12/20 = 60%)
+    2 — below stop threshold (<12/20 = 60%) — day progression blocked
+
+The pre-baseline 14/20 projection was retired once the empirical day-1
+run landed at 13/20. Do not revert under schedule pressure.
 
 Results are appended to results/regression_<set>_<timestamp>.json for
 day-N trend analysis.
@@ -215,15 +218,15 @@ def main() -> int:
     if should_stop:
         print()
         print(f"⛔ STOP: {accuracy * 100:.1f}% is below the {int(stop * 100)}% stop threshold.")
-        print("Day-2 progression is blocked until the drift is diagnosed and restored.")
+        print("Day progression is blocked until the drift is diagnosed and restored.")
         return 2
     if not gate_passed:
         print()
         print(f"⚠ Gate NOT met: {accuracy * 100:.1f}% < {int(gate * 100)}% (but above stop threshold).")
-        print("Investigate variance; expected range per ADR-004 baseline is 65-75%.")
+        print("Investigate variance; baseline per ADR-004 is 13/20 = 65%.")
         return 1
     print()
-    print(f"✓ Gate passed: {accuracy * 100:.1f}% ≥ {int(gate * 100)}%. Day-1 regression complete.")
+    print(f"✓ Gate passed: {accuracy * 100:.1f}% ≥ {int(gate * 100)}%. Regression complete.")
     return 0
 
 

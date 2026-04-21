@@ -1,0 +1,50 @@
+{
+  "set": "sec_twenty_five",
+  "timestamp": "20260421T021538Z",
+  "selected": [
+    "SEC0009",
+    "SEC0014"
+  ],
+  "elapsed_minutes": 10.202580734093983,
+  "tier12_passed": 2,
+  "tier12_total": 2,
+  "tier12_accuracy": 1.0,
+  "tier12_gate_passed": true,
+  "tier3_correctly_abstained": 0,
+  "tier3_total": 0,
+  "tier3_accuracy": 0.0,
+  "tier3_gate_passed": null,
+  "tier3_reason_distribution": {},
+  "per_question": [
+    {
+      "uid": "SEC0009",
+      "tier": "TIER_1_CONSOLIDATED",
+      "company": "AMZN",
+      "question": "What was Amazon's cash and cash equivalents balance at the end of fiscal year 2025?",
+      "correct": true,
+      "detail": "reward=1.0 got='86810' expected='86810'",
+      "latency_s": 163.23,
+      "error": null,
+      "answer": "86810",
+      "abstained": false,
+      "abstention_reason": null,
+      "xbrl_reason": null,
+      "xbrl_agreed": true
+    },
+    {
+      "uid": "SEC0014",
+      "tier": "TIER_2_MULTI_PERIOD",
+      "company": "PFE",
+      "question": "What was Pfizer's total revenue in fiscal year 2025?",
+      "correct": true,
+      "detail": "reward=1.0 got='62579' expected='62579'",
+      "latency_s": 448.92,
+      "error": null,
+      "answer": "62579",
+      "abstained": false,
+      "abstention_reason": null,
+      "xbrl_reason": null,
+      "xbrl_agreed": true
+    }
+  ]
+}

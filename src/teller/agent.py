@@ -11,10 +11,44 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from teller.config import DEFAULT_MODEL, ModelConfig
-from teller.result import Result
+from teller.result import Result, XBRLValidation
 
 if TYPE_CHECKING:
     from teller.corpus import Corpus
+
+
+# v0.1 keyword → candidate GAAP concept map for SEC XBRL cross-check.
+# Tried in order; first available fact wins. This is a narrow heuristic
+# sized for the day-2 Apple smoke test and Tier-1 direct-line-item
+# questions in the day-3 SEC test set. Cross-period concept
+# normalization (e.g. deprecated-concept fallback across taxonomy years)
+# is deferred to a future concept-family layer — see placeholder ADR-008
+# in SPRINT_STATUS.md.
+_SEC_KEYWORD_TO_CONCEPTS: dict[str, list[str]] = {
+    "revenue": [
+        "us-gaap:Revenues",
+        "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    ],
+    "net sales": [
+        "us-gaap:Revenues",
+        "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    ],
+    "sales": [
+        "us-gaap:Revenues",
+        "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    ],
+    "net income": ["us-gaap:NetIncomeLoss"],
+    "diluted earnings per share": ["us-gaap:EarningsPerShareDiluted"],
+    "earnings per share": [
+        "us-gaap:EarningsPerShareDiluted",
+        "us-gaap:EarningsPerShareBasic",
+    ],
+    "diluted eps": ["us-gaap:EarningsPerShareDiluted"],
+    "earnings": ["us-gaap:NetIncomeLoss"],
+    "total assets": ["us-gaap:Assets"],
+    "assets": ["us-gaap:Assets"],
+    "cash": ["us-gaap:CashAndCashEquivalentsAtCarryingValue"],
+}
 
 
 class GooseNotFoundError(RuntimeError):
@@ -190,10 +224,31 @@ class Agent:
                         abstention_reason="empty_answer_file",
                         latency_ms=latency_ms,
                     )
+                # Prompt-level abstention sentinel (ADR-010 day-3 behavioral
+                # abstention). The SEC overlay writes "ABSTAIN:<reason_code>"
+                # to the answer file when it classifies a question as
+                # segment-intent (or any other unanswerable class). Lift the
+                # reason into Result.abstained without running XBRL cross-
+                # check — there's no numeric value to validate against a
+                # tagged fact. The reason string after the colon is surfaced
+                # verbatim, so the prompt layer owns the reason-code taxonomy
+                # without requiring Agent changes.
+                first_line = answer.split("\n", 1)[0].strip()
+                if first_line.startswith("ABSTAIN:"):
+                    reason = first_line[len("ABSTAIN:"):].strip() or "llm_requested_abstention"
+                    return Result(
+                        question=question,
+                        answer=None,
+                        abstained=True,
+                        abstention_reason=reason,
+                        latency_ms=latency_ms,
+                    )
+                xbrl_validation = self._post_validate(question, answer)
                 return Result(
                     question=question,
                     answer=answer,
                     confidence=1.0,
+                    xbrl_validation=xbrl_validation,
                     latency_ms=latency_ms,
                 )
 
@@ -209,3 +264,189 @@ class Agent:
     def _repo_root() -> Path:
         """Return the teller/ repo root (two levels up from src/teller/)."""
         return Path(__file__).parent.parent.parent.resolve()
+
+    # ------------------------------------------------------------------
+    # Post-validation (XBRL cross-check for SEC filings)
+    # ------------------------------------------------------------------
+
+    def _post_validate(self, question: str, answer: str) -> XBRLValidation:
+        """Run the domain's post-hoc validation against a raw LLM answer.
+
+        Treasury and other non-XBRL domains always return
+        `XBRLValidation(performed=False)` — no tagged ground truth
+        exists. The SEC domain attempts a literal-QName lookup against
+        the filing's iXBRL instance per ADR-002, guessing the GAAP
+        concept from question keywords.
+
+        Missing filing, missing concept, or an answer that is not a
+        parseable number all fall through to `performed=False` with a
+        structured reason. This mirrors the abstention-first design
+        from the strategy doc: the agent never invents agreement it
+        cannot verify.
+        """
+        if self.domain != "sec_filings":
+            return XBRLValidation(performed=False)
+
+        # Lazy import — avoids the ~2 s arelle import cost for callers
+        # that never hit the SEC path.
+        from teller.validation.xbrl import (
+            FactLookup,
+            lookup_fact,
+            synthesize_xbrl_validation,
+        )
+
+        instance_path = self._find_xbrl_instance()
+        if instance_path is None:
+            return XBRLValidation(
+                performed=False,
+                reason="xbrl_instance_not_found",
+                note=(
+                    "no .htm inline-XBRL filing found under the corpus "
+                    "directory; re-run `teller download-sec` to populate it"
+                ),
+            )
+
+        concepts = _guess_gaap_concepts(question)
+        if not concepts:
+            return XBRLValidation(
+                performed=False,
+                reason="concept_unknown",
+                note=(
+                    "no GAAP concept mapping for this question in v0.1; "
+                    "concept-family normalization is tracked under "
+                    "placeholder ADR-008"
+                ),
+            )
+
+        period_end = _extract_document_period_end(instance_path)
+        if period_end is None:
+            return XBRLValidation(
+                performed=False,
+                reason="xbrl_period_not_found",
+                note="could not determine DocumentPeriodEndDate from the filing",
+            )
+
+        last_lookup: Optional[FactLookup] = None
+        for concept in concepts:
+            lookup = lookup_fact(instance_path, concept, period_end)
+            last_lookup = lookup
+            if lookup.available:
+                return synthesize_xbrl_validation(lookup, agent_answer=_normalize_numeric(answer, lookup.value))
+
+        # None of the candidate concepts produced an available fact.
+        # Surface the last lookup's reason (most informative — e.g.
+        # segment_level_dimensional) rather than collapsing to not_tagged.
+        if last_lookup is not None:
+            return synthesize_xbrl_validation(last_lookup)
+        return XBRLValidation(performed=False, reason="concept_unknown")
+
+    def _find_xbrl_instance(self) -> Optional[Path]:
+        """Find a single .htm iXBRL instance under `self.corpus.path`.
+
+        Returns the first `.htm` / `.html` file found recursively. When
+        the corpus contains multiple filings, the result is arbitrary —
+        v0.1 smoke is scoped to one filing at a time. Multi-filing
+        corpora are a v0.2 concern (batch processing ticker lists).
+        """
+        root = self.corpus.path
+        for pattern in ("**/*.htm", "**/*.html"):
+            for candidate in root.glob(pattern):
+                if candidate.is_file() and candidate.stat().st_size > 1000:
+                    return candidate
+        return None
+
+
+def _guess_gaap_concepts(question: str) -> list[str]:
+    """Return candidate GAAP concepts for a natural-language question."""
+    q = question.lower()
+    # Match longest keyword first (e.g. "net sales" before "sales").
+    for keyword in sorted(_SEC_KEYWORD_TO_CONCEPTS.keys(), key=len, reverse=True):
+        if keyword in q:
+            return list(_SEC_KEYWORD_TO_CONCEPTS[keyword])
+    return []
+
+
+def _extract_document_period_end(instance_path: Path) -> Optional[str]:
+    """Read `dei:DocumentPeriodEndDate` from an iXBRL instance.
+
+    Every SEC filing tags this DEI concept with the period-of-report
+    date. Using the DEI tag is more reliable than inferring from
+    filename conventions or from the largest-range context.
+    """
+    from teller.validation.xbrl import lookup_fact
+
+    # DocumentPeriodEndDate is an instant-type string fact, not a
+    # numeric monetaryItemType — our lookup_fact still works for it
+    # because the predicate (consolidated context, period match) only
+    # checks the context shape, not the fact type. We do not have a
+    # period_end to match against yet, so we read the raw instance and
+    # return the first consolidated DocumentPeriodEndDate we see.
+    from arelle.api.Session import Session
+    from arelle.ModelValue import qname
+    from arelle.RuntimeOptions import RuntimeOptions
+
+    session = Session()
+    try:
+        options = RuntimeOptions(
+            entrypointFile=str(instance_path),
+            internetConnectivity="offline",
+            keepOpen=True,
+            logLevel="error",
+        )
+        try:
+            session.run(options)
+        except Exception:
+            return None
+        models = session.get_models()
+        if not models:
+            return None
+        m = models[0]
+        dei_concept = qname("dei:DocumentPeriodEndDate", m.prefixedNamespaces)
+        if dei_concept is None:
+            return None
+        facts = m.factsByQname.get(dei_concept, set())
+        for fact in facts:
+            if not fact.context.qnameDims:
+                value = fact.value
+                if value:
+                    return str(value).strip()
+        return None
+    finally:
+        try:
+            session.close()
+        except Exception:
+            pass
+
+
+def _normalize_numeric(agent_answer: str, tagged_value: Optional[str]) -> Optional[str]:
+    """Scale the agent's answer so it compares cleanly to `tagged_value`.
+
+    The iron rules force the LLM to write a bare number to answer.txt
+    with no unit. For a 10-K revenue question, the LLM typically
+    writes the value in the table's reporting unit (millions):
+    `391035`. The XBRL fact stores the full dollar amount:
+    `391035000000`. Direct comparison is off by 10^6 / 10^9.
+
+    This helper tries the agent's answer as-is and scaled by 10^3 / 10^6
+    / 10^9, returning the candidate closest to `tagged_value`. If none
+    agree within 1 %, returns the raw answer and
+    `synthesize_xbrl_validation` will mark `agreed=False` — which is
+    also the right signal.
+    """
+    if tagged_value is None:
+        return agent_answer
+    try:
+        agent_f = float(agent_answer)
+        tagged_f = float(tagged_value)
+    except (TypeError, ValueError):
+        return agent_answer
+    if tagged_f == 0:
+        return agent_answer
+    candidates = [
+        agent_f,
+        agent_f * 1_000,
+        agent_f * 1_000_000,
+        agent_f * 1_000_000_000,
+    ]
+    best = min(candidates, key=lambda x: abs(x - tagged_f) / abs(tagged_f))
+    return str(best)

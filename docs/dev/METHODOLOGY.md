@@ -54,3 +54,22 @@ The actual root cause — newlines in the `--params` CLI argument — was then f
 - Day-4 private beta recipient list: do not draft the beta message while Leon reviews polish deliverables.
 
 **Exceptions (reversible, pre-approved).** Explicitly flag when something is pulled forward and why it is reversible. PyPI availability check is the canonical example — 5-second curl, zero-cost if the name turns out to be taken, reversible.
+
+---
+
+## Code Behavior Is Authoritative, Not Reasoned Memory
+
+**Rule.** For any claim that a piece of code behaves a certain way — "unchanged by this refactor," "backward-compatible," "same output as baseline" — running the code is the standard, not reasoning about the code. Analytical arguments for behavioral preservation are hypotheses. Every day-close claim against a locked gate requires empirical verification regardless of how airtight the analytical argument looks. This is the companion principle to "Arena artifacts are authoritative, not stated memory" extended from data to behavior.
+
+**Case 1 (2026-04-17 — day-2 cold-start SHA drift).** Leon's day-2 cold-start prompt cited SHA `7c47255` as the day-1 close commit. `git log` showed the actual chain was `e50aac8` → `7a8c088` → `e9a8e65` — no `7c47255` in the repository at all. A stated SHA had been carried forward in a draft prompt and never reconciled against `git log`. Had the session proceeded on the stated SHA, any downstream claim that referenced "state at 7c47255" would have been unverifiable. One `git log --oneline` at cold-start caught it.
+
+**Case 2 (2026-04-20 — day-3 treasury regression re-verification).** The day-3 Track B Agent change (ABSTAIN-sentinel parsing) was analytically additive — the new branch fires only when `answer.startswith("ABSTAIN:")`, and treasury answers never start with that string. Analytical argument for "treasury behavior unchanged" was sound. Leon's call: run the regression anyway. Result: 13/20, matching the baseline. Variance-bucket composition shifted within the count (one ALWAYS_PASS flipped to fail, one ALWAYS_FAIL flipped to pass) while net count stayed identical. The analytical argument was correct at the behavioral level. The empirical verification was still the right standard: it surfaced real variance that reasoning alone would not have predicted, and it closed the day-3 gate on evidence rather than on intuition.
+
+**Application scope.**
+
+- Any refactor claiming "behavior-preserving": run the relevant regression / gate before the refactor is declared done.
+- Any day-close against a locked gate (treasury ≥13/20, SEC tier-1+2 ≥80 %, tier-3 ≥60 %): run the empirical check even when the only changes since the last pass are additive or in unrelated code paths.
+- Any "my change should not have affected X": run X's test suite before shipping. The cost of the test run is almost always less than the cost of discovering the coupling in production.
+- Any stated SHA, test count, benchmark number, or per-question result in a cold-start prompt: reconcile against `git log` / `pytest` / `results/*.json` on the first turn. Do not carry stated numbers forward unverified.
+
+**Anti-pattern.** Accepting "analytically unchanged" as equivalent to "empirically verified" under schedule pressure. Ten minutes of regression runtime is cheap insurance against the class of bug where code coupling surfaces only when the code runs. The schedule pressure that makes skipping the run feel worth it is almost always the exact moment the evidence matters most.

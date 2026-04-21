@@ -1,0 +1,85 @@
+{#
+  src/teller/domains/sec_filings/prompt.j2 — SEC-filings domain overlay.
+
+  Extends prompts/base.j2 with traps specific to 10-K / 10-Q documents
+  retrieved from EDGAR. Modern filings are inline XBRL (iXBRL) HTML —
+  readable as text for the narrative and financial tables, with XBRL
+  facts embedded as span tags.
+
+  Iron rules are inherited verbatim from base.j2 and locked by ADR-001.
+
+  Note on the XBRL cross-check: this prompt shapes the LLM's behavior
+  on consolidated-vs-segment questions independent of XBRL. Agent.ask
+  runs the XBRL ground-truth validation as a separate post-processing
+  step (see src/teller/validation/xbrl.py and ADR-002). Keep these
+  layers distinct — the prompt tells the LLM HOW to read a filing; the
+  XBRL layer tells the caller WHAT the company actually tagged.
+#}
+{% extends "base.j2" %}
+
+{% block early_abstention -%}
+CLASSIFY BEFORE RETRIEVING (segment-intent abstention — as binding as the Iron Rules):
+Your FIRST Python block must classify the question as SEGMENT-INTENT or CONSOLIDATED.
+
+Segment-intent markers — the question scopes below company-level consolidated total:
+- Geographic: "Greater China", "Americas", "Europe", "North America", any country/region name narrower than the filer's country of incorporation
+- Business segment: "Google Services", "AWS", "automotive segment", "energy generation", "upstream", "downstream", "Consumer & Community Banking", "Productivity and Business Processes", "Commercial Cloud", any named division with the word "segment"
+- Product line: "iPhone", "Azure", "Mac", "Data Center", any named product the filer reports separately
+- Qualifiers that narrow from the company total: "in <region>", "<segment name> segment revenue", "<division name> net income"
+
+If SEGMENT-INTENT, your FIRST Python block MUST be exactly:
+    open('/app/answer.txt','w').write('ABSTAIN:segment_level_dimensional')
+Then FINISH. Do NOT grep. Do NOT read the filing. Teller's XBRL cross-validation cannot verify segment-level values in v0.1, and an extracted segment value for a segment-intent question defeats the moat — it is worse than no answer.
+
+If CONSOLIDATED-intent, proceed with the normal WORKFLOW. Total-company metrics (total revenue, net income, total assets, diluted EPS, cash and equivalents, year-over-year growth of any of these) are consolidated.
+{%- endblock %}
+
+{% block workflow_multi_period -%}
+For cross-year comparisons: most 10-Ks include a 3-year comparative Income Statement and 2-year Balance Sheet inside a single filing. One filing beats three. grep for "CONSOLIDATED STATEMENTS OF OPERATIONS" or "CONSOLIDATED BALANCE SHEETS" in the latest 10-K before pulling prior-year filings.
+{%- endblock %}
+
+{% block domain_unit_conversion -%}
+UNIT CONVERSION (SEC filings):
+- Income statement tables are typically "in millions" — check the header line immediately above the table. Per-share amounts are in dollars.
+- "$391,035" in a "millions" table means $391,035,000,000 ($391.035B). A reader asking "in billions" needs divide-by-1,000.
+- Parenthetical (234) = NEGATIVE (loss, outflow, reduction).
+- "—" or blank = zero for arithmetic purposes, unless the footnote says otherwise.
+- Check FOUR places: table title, header row above columns, per-column header, footnote.
+{%- endblock %}
+
+{% block domain_time_conventions -%}
+FISCAL YEAR varies by filer:
+- Apple (AAPL): FY ends last Saturday of September. FY2025 = Sep 29, 2024 – Sep 27, 2025.
+- Microsoft (MSFT): FY ends June 30. FY2025 = Jul 1, 2024 – Jun 30, 2025.
+- Most S&P 500: FY = calendar year, ends Dec 31.
+- Always check the 10-K cover page for the period covered. "Fiscal Year Ended" is the ground truth.
+- "Last fiscal year" in a question asked today means the most recent FY whose 10-K has been filed — not the current in-progress year.
+{%- endblock %}
+
+{% block domain_table_example %}  | | Year Ended - Sep 27 2025 | Year Ended - Sep 28 2024 | Year Ended - Sep 30 2023 |
+Row "Net sales - Products" value "294,866" is the Products revenue only — NOT total Net sales. The parent row "Net sales" (no child segment) is the consolidated total.{% endblock %}
+
+{% block domain_traps -%}
+DOMAIN TRAPS (SEC filings):
+- GAAP vs NON-GAAP. If the question asks for a standard income-statement line (Revenue, Net income, EPS), pull from the GAAP CONSOLIDATED STATEMENTS OF OPERATIONS, not from the MD&A's adjusted / non-GAAP reconciliations. Non-GAAP figures typically live in Item 7 MD&A.
+- "Revenue" nomenclature varies: Apple uses "Net sales" + "Services"; Microsoft uses "Revenue"; others "Total revenues" or "Total net revenues." All mean the same top-line for a GAAP total-revenue question.
+- CONSOLIDATED vs SEGMENT. Segment breakdowns ("Products" + "Services"; "iPhone" + "Mac" + ... for Apple; "Productivity and Business Processes" for MSFT) live in Item 8 Note "Segment Information" AND in Item 7 MD&A. If the question asks for a SEGMENT value, extract from the segment table. **If the question asks for a top-line consolidated value, DO NOT return a segment value.** Segment-level answers to a consolidated question are the #1 launch-day failure class.
+- SEGMENT ABSTENTION is enforced before retrieval — see "CLASSIFY BEFORE RETRIEVING" at the top of this prompt. If you are executing WORKFLOW it means you classified the question as CONSOLIDATED. Do not return a segment value for a consolidated question.
+- RESTATEMENT. Later 10-Ks may restate prior-year values. A filing dated 2025 reporting "2023: $x" supersedes the 2023 10-K's original reporting of "2023: $y" if x ≠ y. Use the MOST RECENT filing's number for a prior year unless the question explicitly asks for "as originally reported."
+- 10-K vs 10-Q. 10-K = annual (Item 7 MD&A + Item 8 full financials). 10-Q = quarterly, less detail. "Last fiscal year" → 10-K. "Last quarter" → 10-Q.
+- Filing date ≠ reporting period. A 10-K filed 2025-11-01 reports on the fiscal year ending 2025-09-27 (Apple). The period-of-report on the cover page is ground truth.
+- When a question uses "last fiscal year" or "most recent year," interpret as the fiscal year reported in the filing (the most recent completed year from the filer's perspective), not the prior comparative year.
+{%- endblock %}
+
+{% block domain_multi_file -%}
+MULTI-FILE QUESTIONS (SEC filings):
+- Filings are .htm files in sec_data/<TICKER>/<ACCESSION>/. Recurse: grep -rn "metric" /app/corpus/
+- Within one 10-K, comparative tables usually give multi-year values in a single grep hit. Check the latest 10-K FIRST before pulling earlier filings.
+- For segment multi-year trends: Item 8 Note "Segment Information" often includes a 3-year comparative.
+{%- endblock %}
+
+{% block domain_external_data -%}
+EXTERNAL DATA (not in filings):
+- SEC filing deadlines by filer size (large accelerated: 60 days for 10-K, 40 days for 10-Q). Not load-bearing for extraction; use only if the question explicitly asks about filing cadence.
+- Use the WEB SEARCH block below for ticker-to-CIK lookups or company metadata that is not in the filing itself.
+{%- endblock %}

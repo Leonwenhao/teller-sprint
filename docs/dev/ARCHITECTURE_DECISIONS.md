@@ -14,12 +14,16 @@ This file is the ADR log for the Teller v0.1 sprint. Each entry records a non-tr
 | # | Title | Status | Date |
 |---|---|---|---|
 | ADR-001 | Iron rules canonical form | Accepted | 2026-04-16 |
-| ADR-002 | XBRL library choice | Reserved for day 2 | — |
+| ADR-002 | XBRL library choice (arelle-release==2.39.6) | Accepted | 2026-04-17 |
 | ADR-003 | Reasoning effort = medium | Accepted | 2026-04-16 |
 | ADR-004 | 20-question treasury regression stratification | Accepted (UIDs locked) | 2026-04-16 |
 | ADR-005 | Prompt split validation gate | Accepted and passed (Leon-annotated) | 2026-04-16 |
 | ADR-006 | Harness is goose (correcting Revised Development Plan) | Accepted | 2026-04-16 |
 | ADR-007 | Goose session-race mitigation in Agent.ask | Accepted | 2026-04-17 |
+| ADR-008 | Concept-family normalization layer | Reserved — write before day-3 SEC test set if needed | — |
+| ADR-009 | Fast-path for top-line extraction class | Reserved — v0.2 concern | — |
+| ADR-010 | XBRL validator question-intent awareness (segment vs consolidated) | Reserved — v0.2 concern | — |
+| ADR-011 | LLM reasoning-trace persistence for observability | Open question (v0.2 vs launch-blocking) | — |
 
 ---
 
@@ -73,9 +77,160 @@ Any prompt change that would alter a canonical anchor requires a new ADR that ex
 
 ## ADR-002 — XBRL library choice
 
-**Status:** Reserved for day 2.
+**Status:** Accepted
+**Date:** 2026-04-17
+**Authors:** Claude Code (draft, recommendation), Leon (criteria, review), Codex (second opinion — concurred with substantive docstring caveats).
 
-Python has two production-grade XBRL libraries: `arelle` and `python-xbrl`. The day-2 evaluation will compare API shape, maintenance status, ease of extracting the 10-K / 10-Q facts we need, segment-level data handling, and install weight. Codex will be consulted for a second opinion per the cold-start protocol. The decision recorded here will include the chosen library, rationale, and how segment-level shortfalls are handled (likely: fall back to text extraction + abstention).
+### Context
+
+Day 2 of the sprint is SEC infrastructure day. The XBRL cross-validation layer is the strategic moat per `Revised_TELLER_STRATEGY.md §4`: every SEC query attempts an XBRL validation against the facts the company itself tagged and submitted to the SEC. The library choice is the load-bearing infrastructure decision for day 2 — it constrains the parser module's API (`src/teller/validation/xbrl.py`), the taxonomy-caching strategy, the shape of abstention when validation fails, and the licensing story on the v0.1 launch and v0.4 hosted path.
+
+### Correction of Prior Framing
+
+The ADR title and the day-2 cold-start prompt frame this as a two-way choice between `arelle` and `python-xbrl`, with the AGPL license assumed to attach to arelle. On research, two facts invalidate that framing:
+
+1. **Arelle is licensed under Apache 2.0**, not AGPL. Confirmed across three authoritative sources: `Arelle/Arelle/LICENSE.md` on GitHub, the PyPI `arelle-release` page, and the official Read the Docs license page. The AGPL concern does not apply to arelle.
+2. **`python-xbrl` (PyPI: `python-xbrl`, GitHub: `greedo/python-xbrl`) is effectively unmaintained.** Last release v1.1.1 on 2016-12-27 — roughly nine years of no active development. Open issues from 2024 without response. Dependency rot reported on `marshmallow`. It is not a serious contender in 2026 and is eliminated from consideration; it stays in this ADR only to close out the prompt's framing.
+
+The real choice is between **arelle** and a third option not named in the prompt: **`py-xbrl`** (PyPI: `py-xbrl`, GitHub: `manusimidt/py-xbrl`), v3.0.3 released 2026-03-08. `py-xbrl` is **GPL-3.0**. The license concern the prompt wanted to raise applies here, not to arelle.
+
+### Comparison
+
+| Criterion | `arelle` | `py-xbrl` |
+|---|---|---|
+| **PyPI name / import** | `arelle-release` / `arelle` | `py-xbrl` / `xbrl` |
+| **Latest release** | v2.39.6 (2026-04-07, 10 days old) | v3.0.3 (2026-03-08, 40 days old) |
+| **License** | **Apache 2.0** | **GPL-3.0** |
+| **Python requirement** | ≥3.10 | ≥3.10 |
+| **Stars / contributors** | 193 / 30+ | 153 / small single-maintainer core |
+| **Open issues** | 93 | 24 |
+| **Install weight** | 5.8 MB wheel | Small (pure-Python) |
+| **Scope** | End-to-end XBRL platform (validation, dimensions, formula, linkbases, XULE) — used by SEC, ESMA, EBA, regulators | Pure parser for instance + taxonomy + linkbase |
+| **API entrypoint** | `arelle.api.Session` / `ModelXbrl` | `XbrlParser(HttpCache).parse_instance(path)` → `XbrlInstance` |
+| **Fact lookup by concept** | `model_xbrl.factsByQname[qname]` → `set[ModelFact]` | iterate `instance.facts`, filter by concept name |
+| **Per-fact attributes exposed** | `fact.concept.qname`, `fact.value`, `fact.contextID`, `fact.context.startDatetime`, `fact.context.endDatetime`, `fact.context.isInstantPeriod`, `fact.unitID`, `fact.decimals`, `fact.xValue` (typed), `fact.context.qnameDims` (dimensions) | `concept`, `value`, `context` (with period), `unit`, `decimals` |
+| **Segment / dimensional contexts** | Native — `fact.context.qnameDims` exposes explicit and typed dimensions for segment / geography / product lines | Supported at the context-parsing layer; dimensional API less ergonomic than arelle's |
+| **Taxonomy cache** | Mature local cache (`~/Library/Application Support/Arelle/cache` on macOS), `--internetConnectivity=offline` supported, can pre-populate by copying taxonomy zips | `HttpCache(cache_dir)` — download-on-demand with on-disk cache. Pre-warm supported but less battle-tested |
+| **Malformed-filing failure** | Raises structured `ModelDocument`/`ModelXbrl` errors; `model_xbrl.errors` list with severities — clean signal for abstention | Raises `TaxonomyNotFound`, `InstanceParseException`; error types documented but shallower taxonomy |
+| **Validation against US-GAAP taxonomy** | Yes — Arelle is the reference implementation for XBRL 2.1 + Dimensions + Formula | No — parser, not validator |
+
+### Criterion-by-Criterion Analysis
+
+**License (load-bearing).** Teller v0.1 ships under MIT. Adding a dependency at import time inherits obligations on redistribution. Apache 2.0 (arelle) is permissive and compatible with MIT for a pip-installable, not-redistributed dependency. GPL-3.0 (py-xbrl) is copyleft: a user who embeds Teller into their own redistributed software may face obligations to open-source that software. More concretely for the v0.4 hosted-Teller path in the strategy doc, GPL's "distribution" trigger is narrower than AGPL's "network use," so hosted Teller running py-xbrl server-side does *not* automatically trigger obligations — but the ambiguity adds a step of legal review at the pilot-conversion moment. Apache 2.0 has no such friction.
+
+**Maintenance status.** Both active. Arelle is the reference open-source XBRL implementation used by national regulators; maintenance is effectively an industry commitment, not a one-person labor of love. py-xbrl is one active maintainer with a small contributor base; healthy today, but carries key-person risk over the v0.2–v0.4 horizon.
+
+**API shape and fact-to-context resolution.** Leon's criterion 4 — "does it expose contextRef, period, unit, decimals" — is the right question because our abstention logic needs to reconcile "the narrative says X for fiscal year 2023" against "the XBRL fact `us-gaap:Revenues` with `contextRef=FD2023` and `unit=USD` and `decimals=-6` is Y." Both libraries expose these. Arelle's API is more complete: `ModelFact.xValue` gives typed values, `.decimals` is exposed directly, and dimensions are parsed into `fact.context.qnameDims` as a dict, which is exactly the structure we want for segment detection. py-xbrl requires more manual XML walking for dimensional contexts.
+
+**Segment-level facts (the moat).** The strategy doc (§4) is explicit: XBRL covers consolidated statements well and segments poorly. Our product promise is to abstain cleanly on segment questions rather than confidently-wrong them. That means we need to *detect* when a fact is dimensional (belongs to a segment/geography/product breakdown) even if we don't have a validated answer for it. Arelle's `fact.context.qnameDims` is the cleanest mechanism — we can look up `us-gaap:Revenues` and see that the dimensional breakdown axis (e.g., `us-gaap:StatementBusinessSegmentsAxis`) exists, which tells the agent to abstain with `reason="segment_level_no_xbrl_validation"`. py-xbrl supports this but with more plumbing.
+
+**Install weight / cold-start vs 30s Apple gate.** Arelle wheel is 5.8 MB. `import arelle` at process start adds measurable but not gate-breaking time; I will measure empirically during parser module implementation and document in a follow-up to this ADR. If cold start exceeds 3 seconds, I will evaluate lazy import behind the CLI boundary so `teller --help` and `teller inspect` are not penalized. py-xbrl is lighter on disk but cold-start difference is likely <1 second in practice. Install weight is not the binding constraint on either.
+
+**Taxonomy caching.** Critical for the "no live fetches mid-inference" principle and the EDGAR rate-limit story. Arelle's cache is mature, well-documented, and supports explicit offline mode — we can pre-populate `~/Library/Application Support/Arelle/cache` during `teller download-sec` or during package install and guarantee zero network I/O at query time. py-xbrl's `HttpCache` is download-on-demand with an on-disk cache; pre-warming is possible but a less-trodden path. Given that we need caching to work reliably on day 1 of a 5-day sprint, arelle's more mature story is worth the heavier API.
+
+**Malformed-filing failure mode.** Day-3 abstention depends on a clean signal when XBRL cannot be parsed. Arelle accumulates errors on `model_xbrl.errors` with severity classifications (`INFO`/`WARNING`/`ERROR`/`FATAL`) and raises structured exceptions at the document-load layer. This maps cleanly onto `XBRLValidation.abstained=True, reason="xbrl_unreadable"`. py-xbrl raises typed exceptions but the error taxonomy is shallower. Edge: a filing with a broken linkbase may cause arelle to error on fact-extraction rather than degrading — we handle this by catching at the Session boundary and returning a clean `XBRLValidation.available=False`, documented in the parser module's error classes.
+
+### Recommendation
+
+**`arelle`.** The decision turns on three factors in priority order:
+
+1. **License is Apache 2.0, not GPL-3.0 or AGPL.** Clean for v0.1 open-source launch, clean for v0.4 hosted path, clean for pilot conversations with compliance-sensitive buy-side desks (Risk 2 in strategy §11). This is the single most important factor — it is a permanent property of the choice, whereas cold-start or install-weight concerns can be mitigated.
+2. **Dimensional API exposes exactly what the abstention layer needs.** `fact.context.qnameDims` makes segment-level detection a dictionary lookup, not an XML walk. The moat (XBRL cross-validation with honest abstention on segments) is cleaner to build.
+3. **Taxonomy cache is production-grade.** The offline mode and pre-population story de-risks the EDGAR rate-limit and "no live fetches mid-inference" constraints on day 1 of implementation, before we've had time to shake out caching bugs.
+
+Against these, arelle's heavier surface (we use ~10% of the platform) is a non-issue — unused code doesn't cost anything at query time, and Apache 2.0 means we're not shipping a platform, just importing a dependency.
+
+### How Segment-Level Shortfalls Are Handled (Per Day-2 Scope)
+
+Per the strategy doc: segment-level facts that XBRL does not tag in a clean GAAP concept trigger **abstention**, not silent degradation. Concrete flow in `src/teller/validation/xbrl.py`:
+
+1. `lookup_fact(instance_path, concept, period)` returns one of:
+    - `XBRLValidation(available=True, value=V, unit=U, context_ref=R, period=P, decimals=D)` — clean XBRL match.
+    - `XBRLValidation(available=False, reason="not_tagged")` — concept is not in the filing.
+    - `XBRLValidation(available=False, reason="segment_level_dimensional")` — concept exists but only within dimensional contexts (no consolidated/default-member fact). Agent proceeds to text extraction with an abstention bias.
+    - `XBRLValidation(available=False, reason="xbrl_unreadable")` — malformed filing or parse error. Agent falls back to text-only extraction with explicit note.
+2. The agent's result-assembly step consumes `XBRLValidation` and decides `Result.abstained` per the day-3 abstention logic (to be finalized in a later ADR).
+
+**Segment-level detection — exact test (load-bearing for parser implementation).** The correct predicate for `reason="segment_level_dimensional"` is: *"no fact exists for this concept whose `fact.context.qnameDims` is empty."* Not *"are there any dimensional facts for this concept."* A 10-K routinely reports `us-gaap:Revenues` both as a consolidated fact (empty `qnameDims`, the one we want) and as dimensional facts broken down by `StatementBusinessSegmentsAxis`, `GeographicAreaAxis`, etc. (non-empty `qnameDims`, which we do *not* want for a top-line answer). The right consolidated fact is the one with `qnameDims == {}`. This must be encoded verbatim in the parser module docstring so the day-2 implementation does not silently take the first or the largest dimensional fact and confidently-wrong the analyst.
+
+### Deferred / Open Items
+
+- **Cold-start measurement.** Empirical measurement of `import arelle` and first `Session.run()` time will be captured during parser module implementation and documented in `docs/dev/day_2_log.md`. If >3s, lazy-import mitigation goes in before the day-2 gate. Not a blocker for the ADR.
+- **Arelle API surface scope.** We will use `arelle.api.Session` plus `ModelXbrl.factsByQname` plus context/unit accessors. No XULE, no formula linkbase execution, no rendering. This scope is documented in the parser module's module-level docstring. A future ADR is required to expand scope.
+- **Taxonomy cache pre-population strategy.** Lazy-on-first-download. Cache fetches happen **only** during `teller download-sec` — the filing download path is where network I/O is expected and rate-limited. Cache fetches are **forbidden** on the `teller ask` path. A `teller ask` invocation that finds a missing taxonomy in the cache must abstain with `reason="xbrl_taxonomy_uncached"` rather than fetch mid-inference. This preserves the "no live fetches mid-inference" principle and avoids EDGAR rate-limit hits during interactive query bursts. Implementation enforces this by constructing arelle's Session with `internetConnectivity="offline"` inside `Agent.ask`, and with `internetConnectivity="online"` only inside `download-sec`. Future ADR may introduce `teller cache-warm` as an explicit pre-population command, but day-2 does not need it.
+- **Test-fixture taxonomy size budget.** `tests/fixtures/xbrl_cache/` has a **hard budget of 10 MB checked into git** for the minimal US-GAAP 2024 taxonomy shards the fixture filings actually reference. Anything larger goes via a test-setup fetch from a pinned mirror URL (documented in `tests/README.md`) or via git-lfs if we reach for it in v0.2+. Full US-GAAP taxonomies run into hundreds of MB and must not land in the repo. If the 10 MB budget is insufficient for day-3 test coverage, the mitigation is pinned-mirror fetch, not budget relaxation.
+
+### Change Policy
+
+Changing the XBRL library requires a new ADR that explicitly deprecates this one, with either (a) a load-bearing failure in arelle's fact-extraction or dimensional API surfaced during day-2 or day-3 implementation, or (b) a license/maintenance change that invalidates the core reasoning above.
+
+### Consequences
+
+- `src/teller/validation/xbrl.py` depends on **`arelle-release==2.39.6`** — pinned exactly, not range-specified. A 10-day-old wheel inside a 5-day sprint is enough upstream-regression surface without auto-upgrade churn. The pin is widened post-launch in a v0.1.1 dependency-sweep ADR, not during the sprint. Added to `pyproject.toml` under `[project.dependencies]`.
+- Apache 2.0 dependency inherits into Teller's own license notice. `NOTICE` file required per Apache 2.0 §4; **tracked on the Launch Punch List in `SPRINT_STATUS.md` for day 4** so it does not get dropped under launch compression.
+- Taxonomy cache lives at the user's default Arelle cache directory by default. Overridable via `TELLER_XBRL_CACHE_DIR` env var for CI and reproducible tests. Test fixtures use a fixed cache under `tests/fixtures/xbrl_cache/` with a **≤10 MB checked-in** subset of US-GAAP 2024 shards (see Deferred / Open Items for size-budget rationale).
+- `teller ask` runs arelle in `internetConnectivity="offline"` mode. `teller download-sec` is the only command that fetches taxonomy files.
+- **Fail-closed on non-clean arelle logs.** Per Codex's probe-3 finding, recoverable XML/XBRL errors can leave a partially-populated `ModelXbrl` that exposes surviving facts. Any non-clean load or validation log (anything at `ERROR` or `FATAL` severity on `model_xbrl.errors`) triggers `XBRLValidation(available=False, reason="xbrl_unreadable")` regardless of whether `factsByQname` returned a populated set for the concept. **We do not trust surviving facts from a filing that arelle flagged.** This is implemented at the `Session` boundary in `src/teller/validation/xbrl.py` and asserted by a fixture test with a deliberately malformed instance document.
+- py-xbrl and python-xbrl are rejected. Neither appears in `pyproject.toml`.
+
+### Amendment A (2026-04-17) — Narrowing the fail-closed rule for two known-benign iXBRL transformation codes
+
+**Context.** The day-2 Apple 10-K smoke brought up a practical failure of the strict fail-closed rule as stated by Codex probe 3. Every modern SEC filing (10-K / 10-Q from the S&P 500 surveyed) accumulates 20–40 entries in `model_xbrl.errors` of the form `ix11.11.1.2:invalidTransformation` and/or `ix11.10.1.2:invalidTransformation`. The filers still reference the pre-2020 iXBRL transformation registry (`http://www.sec.gov/inlineXBRL/transformation/2015-08-31`) which arelle 2.39.6 does not recognize. The SEC has not updated its EDGAR filer-side guidance to the newer transformation registry; compliance inertia is the load-bearing driver here, not filer error. The underlying numeric facts in `factsByQname` are unaffected — the issue is confined to iXBRL text-formatting metadata on non-numeric facts (date strings, duration strings) which Teller's parser does not consume.
+
+**Narrowing.** The fail-closed rule is amended to exempt these two specific codes from the abstain trigger. All other error codes (including anything else under `ix11.*`, `xbrl.*`, `xmlSchema:*`, `utr:*`, dimensional validation, calculation inconsistency) continue to force abstention with `reason="xbrl_unreadable"`.
+
+```python
+# src/teller/validation/xbrl.py
+_NON_BLOCKING_ERROR_CODES = frozenset({
+    "ix11.11.1.2:invalidTransformation",
+    "ix11.10.1.2:invalidTransformation",
+})
+```
+
+**Rationale in one sentence.** A rule that makes Teller abstain on every modern 10-K by default is worse than a rule with a documented, narrow, auditable exception.
+
+**Change policy for further additions.** **The whitelist is capped at these two entries as a matter of process.** A third addition requires a new ADR amendment (Amendment B) with evidence showing (a) the code is widely reported on filings Teller targets, (b) the code's underlying error class does not affect numeric fact extraction, and (c) no alternative fix upstream (arelle update, filer fix) is available on a day-to-day-sprint horizon. Silent growth of the whitelist is the failure mode this policy prevents.
+
+**Audit.** The module docstring of `src/teller/validation/xbrl.py` references this amendment. `tests/test_xbrl_parser.py::test_missing_instance_file` continues to verify that genuinely-broken loads still fail-closed.
+
+---
+
+### Codex Second Opinion (Concurrence, 2026-04-17)
+
+Codex concurred with `arelle-release==2.39.6`. No probe surfaced a disqualifier. Response summarized below; verbatim response preserved in `docs/dev/codex_responses/adr_002_concurrence.md` for audit.
+
+**Probe 1 — dimensional context edge cases.** Concurred that the `qnameDims == {}` predicate is the correct conservative test for a consolidated / default-member fact under Arelle 2.39.6 and XBRL Dimensions 1.0 semantics. Rationale: `qnameDims` contains only *reported* dimensions; omitted explicit dimensions resolve to inferred default members; typed dimensions are distinct and cannot have defaults; and SEC 10-K/10-Q convention treats "total / consolidated" along an axis as the context with **no member** rather than an explicit "Total" member.
+
+**Probe 2 — multi-year taxonomy transitions.** Reframed the risk. The real multi-period pitfall is **not** arelle inconsistency but **exact-QName drift**: `factsByQname` is a literal QName index, and while FASB keeps existing element names stable where possible, it still adds/deprecates concepts and publishes replacement/deprecation metadata across annual taxonomy releases. The fix does not belong in the parser library — it belongs in a **Teller concept-family normalization layer** above the parser. This is a deferred architectural item documented below.
+
+**Probe 3 — malformed-filing failure.** Confirmed that arelle produces structured error signals and unrecoverable loads fail loudly, but **recoverable XML/XBRL errors can leave a partially-populated `ModelXbrl`**. Codex's rule, incorporated into the Consequences section above: fail-closed on any non-clean load or validation log — abstain with `reason="xbrl_unreadable"` rather than trust surviving facts.
+
+**Codex's non-blocking observation:** `factsByQname[qname]` returns a **set**, not an ordered list. Selection must be deterministic after filtering; never rely on iteration order. Implementation must sort on a stable key (likely `contextID` or `(period_start, period_end, contextID)`) before picking a fact.
+
+### Parser-Module Docstring Caveats (from Codex — load-bearing for implementation)
+
+These four caveats **must** be encoded verbatim in the module-level docstring of `src/teller/validation/xbrl.py` so the day-2 implementation does not regress on them:
+
+1. **`qnameDims == {}` means "no reported dimensions," not "no semantic defaulted explicit dimensions."** This is still the correct consolidated / default-member predicate for SEC filings under XBRL Dimensions 1.0; omitted explicit dimensions are inferred as defaults. Do not over-engineer a default-member resolver for v0.1.
+2. **Typed dimensions need separate handling.** They appear in `qnameDims`, but `dimMemberQname()` is only meaningful for explicit dimensions. For typed dimensions, inspect `isTyped` and `typedMember` on the `ModelDimensionValue`. The `qnameDims == {}` predicate still works for "consolidated" — it excludes typed-dimensional contexts correctly — but any code that *walks* `qnameDims` for reporting or abstention-reason detail must branch on `isTyped`.
+3. **`factsByQname` is exact-QName only.** Do not expect arelle to bridge deprecated/replacement concepts or year-to-year taxonomy changes for multi-period questions. Cross-period concept normalization (e.g. resolving a 2023 deprecated concept to its 2024 replacement) lives in Teller's concept-family layer, not in this parser module.
+4. **Do not trust a non-empty fact set by itself.** Gate usage on clean arelle logs/errors; otherwise abstain with `reason="xbrl_unreadable"`. See Consequences section for the fail-closed rule and fixture test requirement.
+
+Additionally, the non-blocking observation: `factsByQname[qname]` returns a **set, not an ordered list**. Deterministic selection required after filtering; never rely on iteration order.
+
+### Deferred architectural follow-up — concept-family normalization layer
+
+Per Codex's probe-2 reframing, multi-period SEC questions (year-over-year growth, trailing-twelve-months, restated figures) require a **concept-family normalization layer** that maps deprecated / replaced / re-parented US-GAAP concepts across annual taxonomy versions. This layer sits above the parser — the parser stays a literal-QName lookup — and consumes FASB's published deprecation/replacement metadata (2025 and 2026 GAAP Taxonomy Release Notes cited by Codex). 
+
+**Scope call for day 2:** the Apple smoke test is single-year (`--latest 10-K`) and does not require this layer. Day-2 parser module stays literal-QName. **A new ADR (placeholder: ADR-008) is required before day-3 SEC test set implementation** if any tier-2 multi-period question depends on concepts that were deprecated or renamed between the filings' taxonomy versions. Tracked in `SPRINT_STATUS.md` under open-items.
+
+### Convergence status
+
+Codex converged. No probe surfaced a disqualifier. ADR-002 status moves to **Accepted**. All substantive Codex feedback has been folded into (a) parser-module docstring caveats above, (b) the fail-closed rule in Consequences, and (c) the concept-family normalization follow-up. No open divergence.
+
+---
+
+
 
 ---
 
@@ -472,3 +627,58 @@ Both outputs then normalized (trailing-whitespace strip per line, leading/traili
 - The pattern is reusable for future domain overlays (SEC on day 2, subsequent verticals in v0.3+).
 
 ---
+
+## ADR-008 — Concept-family normalization layer
+
+**Status:** Reserved. Write before day-3 SEC test set implementation if any tier-2 multi-period question depends on concepts that were deprecated or renamed between the filings' taxonomy versions. See ADR-002 deferred follow-up; tracked in `SPRINT_STATUS.md` under "Open Architectural Items."
+
+---
+
+## ADR-009 — Fast-path for top-line extraction class
+
+**Status:** Reserved for v0.2. Do not implement during the five-day sprint.
+
+The day-2 Apple smoke empirically established that MiniMax + goose on a 1.5 MB iXBRL 10-K runs 120–140 s per query. That is a 4× miss against the dev plan's aspirational 30 s budget (`Revised_TELLER_DEVELOPMENT_PLAN.md` day-2 acceptance criterion). The 30 s number was pre-measurement and is retired in favor of the empirical 60–180 s band documented in `SPRINT_STATUS.md`.
+
+A `teller ask --fast` (or equivalent) path may be worth building for the narrow class of high-value top-line extractions (consolidated revenue, net income, total assets) where the XBRL layer alone answers the question without LLM document reading. The XBRL instance download already populates the cache; the CLI could route to `lookup_fact` directly on a known concept map and skip goose entirely, compressing ~120 s to <5 s. This changes the product positioning story ("sub-minute XBRL-validated answers") and is worth measuring before v0.2 locks.
+
+v0.1 ships without this path. The current `Agent.ask` runs goose end-to-end for every SEC query; XBRL is post-validation only. ADR-009 captures the v0.2 follow-up decision when we have telemetry on what users actually ask.
+
+---
+
+## ADR-010 — XBRL validator question-intent awareness (segment vs consolidated)
+
+**Status:** Reserved for v0.2. Do not implement during the five-day sprint.
+
+The v0.1 XBRL validator is concept-level, not question-intent-aware: given a question and a guessed GAAP concept, it looks up consolidated facts for that concept and returns the match. `segment_level_dimensional` is surfaced only when the concept has **no** consolidated facts at all (rare in practice).
+
+The risk this creates: a question asking for a segment value (e.g., "What were Apple's net sales in Greater China?") matched against a concept that has BOTH consolidated and segment facts (us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax) returns the consolidated fact as "agreement," even though the LLM's text extraction is a segment number. If the LLM and XBRL values happen to fall within the order-of-magnitude normalization band, the validator will mark the pair as agreed — a **false agreement on a segment-intent question**. This is worse than the no-moat state: a moat that actively masks a class of failure.
+
+**Day-3 closes the gap at the prompt layer** (SEC overlay behavioral-abstention guidance: classify segment-intent questions, abstain or surface a segment breakdown rather than return a number). Tier-3 of the 25-question SEC test set enforces this behavior via the scoring contract in `tests/fixtures/sec_filings/sec_twenty_five.json` (`gate.scoring_contract.tier_3`: correct iff `result.abstained AND result.abstention_reason == "segment_level_dimensional"`).
+
+**v0.2 revisits this at the validator layer.** The right shape is question-intent classification before concept lookup: segment-vs-consolidated routing inside `synthesize_xbrl_validation`, so a segment-intent question against a concept with consolidated facts returns `segment_level_dimensional` from the validator itself rather than relying on the LLM to abstain. Building this under day-3 time pressure would produce a worse abstraction than building it with day-3 test-set evidence in hand — so it's deferred, not skipped.
+
+Captured now (pre-first-gate-run, 2026-04-18) while the reasoning is fresh. See also the `segment_level_unresolved` note in ADR-002 reason-code taxonomy: v0.1 uses the single `segment_level_dimensional` code at the parser layer; v0.2 may split or rename based on the validator's new routing, which would be a public-surface break tracked under its own ADR.
+
+---
+
+## ADR-011 — LLM reasoning-trace persistence for observability
+
+**Status:** Open question. Whether this lands in v0.1 launch or is deferred to v0.2 depends on what day-3/day-4 evidence we accumulate about post-hoc debuggability needs. Do not settle the deferral without revisiting.
+
+The Agent runs goose in an ephemeral tempdir with a per-invocation uuid session name. Goose's internal tool-calling transcript (model messages, Python blocks executed, tool outputs) is not persisted anywhere the Agent or a downstream user can retrieve after the subprocess exits. The goose sessions database at `~/.local/share/goose/sessions/sessions.db` exists but does not contain `teller-*` prefixed sessions — the headless-session path appears to bypass the main sessions table.
+
+**Day-3 evidence making this load-bearing:**
+
+- Two 600s timeouts on clean consolidated questions (SEC0009 Amazon cash, SEC0014 Pfizer revenue) in the Track B full re-run. Both had baseline passes. Without reasoning-trace visibility, we cannot distinguish "MiniMax tail-latency flake" from "Track B prompt-regression stalled the classifier loop" without re-running the same question and observing variance.
+- The original 2 tier-3 timeouts in the day-3 baseline run (XOM upstream, JPM CCB) were similarly blind — we could only work backward from outcome. Track B converted both to fast abstention, confirming the classification hypothesis, but only by experiment, not by observation.
+
+**Framing the open question:** the scar pattern is "a customer or engineer asks why question X timed out or gave a surprising answer, and we have no way to inspect it after the fact." If v0.1 ships with Teller-as-a-library and a downstream user hits this, they have the same visibility gap we do. This is a real launch-quality concern, not just engineering ergonomics.
+
+**Minimal-viable shape for v0.1 (if it lands):** persist goose stdout/stderr plus the rendered recipe into a per-invocation trace directory (e.g. `~/.teller/traces/<session_name>/`) with auto-expiry. `Result.trace_path` exposes the directory. No full model-message persistence required for v0.1 — stdout + stderr + recipe is the minimum that lets someone reconstruct what the LLM saw.
+
+**v0.2 shape (if deferred):** structured trace with per-tool-call timing, token counts, and model message chain. Requires deeper goose integration than v0.1 can afford.
+
+**Decision criteria:** if day-4 polish surfaces a third reasoning-opacity scar, move to v0.1. If day-4 closes cleanly on the existing two timeouts and the day-3/tier-3 flakes, v0.2 is acceptable. Defer the decision to end-of-day-4 with evidence, not to end-of-day-3 on intuition.
+
+Captured 2026-04-18; framing updated 2026-04-20 (day-3 close) to mark this as an open question rather than a settled deferral.

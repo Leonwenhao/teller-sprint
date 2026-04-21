@@ -1,0 +1,1200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--XBRL Document Created with the Workiva Platform-->
+<!--Copyright 2026 Workiva-->
+<!--r:019affaa-0f43-742c-a8e5-a729462c7ee1,g:d24effe3-96a3-4db3-a2f6-3dc0c82d3f7b-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:pfe="http://www.pfizer.com/20251231" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:dtr-types="http://www.xbrl.org/dtr/type/2024-01-31" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.pfizer.com/20251231">
+  <xs:import namespace="http://fasb.org/srt/2025" schemaLocation="https://xbrl.fasb.org/srt/2025/elts/srt-2025.xsd"/>
+  <xs:import namespace="http://fasb.org/us-gaap/2025" schemaLocation="https://xbrl.fasb.org/us-gaap/2025/elts/us-gaap-2025.xsd"/>
+  <xs:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.xbrl.org/dtr/type/2024-01-31" schemaLocation="https://www.xbrl.org/dtr/type/2024-01-31/types.xsd"/>
+  <xs:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xs:import namespace="http://xbrl.sec.gov/country/2025" schemaLocation="https://xbrl.sec.gov/country/2025/country-2025.xsd"/>
+  <xs:import namespace="http://xbrl.sec.gov/cyd-af-sub/2025" schemaLocation="https://xbrl.sec.gov/cyd/2025/cyd-af-sub-2025.xsd"/>
+  <xs:import namespace="http://xbrl.sec.gov/dei/2025" schemaLocation="https://xbrl.sec.gov/dei/2025/dei-2025.xsd"/>
+  <xs:import namespace="http://xbrl.sec.gov/ecd/2025" schemaLocation="https://xbrl.sec.gov/ecd/2025/ecd-2025.xsd"/>
+  <xs:annotation>
+    <xs:appinfo>
+      <link:linkbaseRef xmlns:xlink="http://www.w3.org/1999/xlink" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pfe-20251231_pre.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:type="simple"/>
+      <link:linkbaseRef xmlns:xlink="http://www.w3.org/1999/xlink" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pfe-20251231_def.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:type="simple"/>
+      <link:linkbaseRef xmlns:xlink="http://www.w3.org/1999/xlink" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pfe-20251231_lab.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:type="simple"/>
+      <link:linkbaseRef xmlns:xlink="http://www.w3.org/1999/xlink" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pfe-20251231_cal.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:type="simple"/>
+      <link:roleType id="CoverPage" roleURI="http://www.pfizer.com/role/CoverPage">
+        <link:definition>0000001 - Document - Cover Page</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AuditInformation" roleURI="http://www.pfizer.com/role/AuditInformation">
+        <link:definition>0000002 - Document - Audit Information</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedStatementsofOperations" roleURI="http://www.pfizer.com/role/ConsolidatedStatementsofOperations">
+        <link:definition>9952151 - Statement - Consolidated Statements of Operations</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedStatementsofComprehensiveIncome" roleURI="http://www.pfizer.com/role/ConsolidatedStatementsofComprehensiveIncome">
+        <link:definition>9952152 - Statement - Consolidated Statements of Comprehensive Income</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedBalanceSheets" roleURI="http://www.pfizer.com/role/ConsolidatedBalanceSheets">
+        <link:definition>9952153 - Statement - Consolidated Balance Sheets</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedBalanceSheetsParenthetical" roleURI="http://www.pfizer.com/role/ConsolidatedBalanceSheetsParenthetical">
+        <link:definition>9952154 - Statement - Consolidated Balance Sheets (Parenthetical)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedStatementsofEquity" roleURI="http://www.pfizer.com/role/ConsolidatedStatementsofEquity">
+        <link:definition>9952155 - Statement - Consolidated Statements of Equity</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedStatementsofEquityParenthetical" roleURI="http://www.pfizer.com/role/ConsolidatedStatementsofEquityParenthetical">
+        <link:definition>9952156 - Statement - Consolidated Statements of Equity (Parenthetical)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ConsolidatedStatementsofCashFlows" roleURI="http://www.pfizer.com/role/ConsolidatedStatementsofCashFlows">
+        <link:definition>9952157 - Statement - Consolidated Statements of Cash Flows</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="BasisofPresentationandSignificantAccountingPolicies" roleURI="http://www.pfizer.com/role/BasisofPresentationandSignificantAccountingPolicies">
+        <link:definition>9952158 - Disclosure - Basis of Presentation and Significant Accounting Policies</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangements" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangements">
+        <link:definition>9952159 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiatives" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiatives">
+        <link:definition>9952160 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherIncomeDeductionsNet" roleURI="http://www.pfizer.com/role/OtherIncomeDeductionsNet">
+        <link:definition>9952161 - Disclosure - Other (Income)/Deductions&#8212;Net</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMatters" roleURI="http://www.pfizer.com/role/TaxMatters">
+        <link:definition>9952162 - Disclosure - Tax Matters</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterests" roleURI="http://www.pfizer.com/role/AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterests">
+        <link:definition>9952163 - Disclosure - Accumulated Other Comprehensive Loss, Excluding Noncontrolling Interests</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstruments" roleURI="http://www.pfizer.com/role/FinancialInstruments">
+        <link:definition>9952164 - Disclosure - Financial Instruments</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherFinancialInformation" roleURI="http://www.pfizer.com/role/OtherFinancialInformation">
+        <link:definition>9952165 - Disclosure - Other Financial Information</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PropertyPlantandEquipmentNet" roleURI="http://www.pfizer.com/role/PropertyPlantandEquipmentNet">
+        <link:definition>9952166 - Disclosure - Property, Plant and Equipment, Net</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwill" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwill">
+        <link:definition>9952167 - Disclosure - Identifiable Intangible Assets, Net and Goodwill</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlans" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlans">
+        <link:definition>9952168 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="Equity" roleURI="http://www.pfizer.com/role/Equity">
+        <link:definition>9952169 - Disclosure - Equity</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPayments" roleURI="http://www.pfizer.com/role/ShareBasedPayments">
+        <link:definition>9952170 - Disclosure - Share-Based Payments</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="EarningsPerCommonShareAttributabletoPfizerIncCommonShareholders" roleURI="http://www.pfizer.com/role/EarningsPerCommonShareAttributabletoPfizerIncCommonShareholders">
+        <link:definition>9952171 - Disclosure - Earnings Per Common Share Attributable to Pfizer Inc. Common Shareholders</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="Leases" roleURI="http://www.pfizer.com/role/Leases">
+        <link:definition>9952172 - Disclosure - Leases</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ContingenciesandCertainCommitments" roleURI="http://www.pfizer.com/role/ContingenciesandCertainCommitments">
+        <link:definition>9952173 - Disclosure - Contingencies and Certain Commitments</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformation" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformation">
+        <link:definition>9952174 - Disclosure - Segment, Geographic and Other Revenue Information</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="BasisofPresentationandSignificantAccountingPoliciesPolicies" roleURI="http://www.pfizer.com/role/BasisofPresentationandSignificantAccountingPoliciesPolicies">
+        <link:definition>9955511 - Disclosure - Basis of Presentation and Significant Accounting Policies (Policies)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="BasisofPresentationandSignificantAccountingPoliciesTables" roleURI="http://www.pfizer.com/role/BasisofPresentationandSignificantAccountingPoliciesTables">
+        <link:definition>9955512 - Disclosure - Basis of Presentation and Significant Accounting Policies (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsTables" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsTables">
+        <link:definition>9955513 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesTables" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesTables">
+        <link:definition>9955514 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherIncomeDeductionsNetTables" roleURI="http://www.pfizer.com/role/OtherIncomeDeductionsNetTables">
+        <link:definition>9955515 - Disclosure - Other (Income)/Deductions&#8212;Net (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersTables" roleURI="http://www.pfizer.com/role/TaxMattersTables">
+        <link:definition>9955516 - Disclosure - Tax Matters (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterestsTables" roleURI="http://www.pfizer.com/role/AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterestsTables">
+        <link:definition>9955517 - Disclosure - Accumulated Other Comprehensive Loss, Excluding Noncontrolling Interests (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsTables" roleURI="http://www.pfizer.com/role/FinancialInstrumentsTables">
+        <link:definition>9955518 - Disclosure - Financial Instruments (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherFinancialInformationTables" roleURI="http://www.pfizer.com/role/OtherFinancialInformationTables">
+        <link:definition>9955519 - Disclosure - Other Financial Information (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PropertyPlantandEquipmentNetTables" roleURI="http://www.pfizer.com/role/PropertyPlantandEquipmentNetTables">
+        <link:definition>9955520 - Disclosure - Property, Plant and Equipment, Net (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillTables" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillTables">
+        <link:definition>9955521 - Disclosure - Identifiable Intangible Assets, Net and Goodwill (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansTables" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansTables">
+        <link:definition>9955522 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsTables" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsTables">
+        <link:definition>9955523 - Disclosure - Share-Based Payments (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="EarningsPerCommonShareAttributabletoPfizerIncCommonShareholdersTables" roleURI="http://www.pfizer.com/role/EarningsPerCommonShareAttributabletoPfizerIncCommonShareholdersTables">
+        <link:definition>9955524 - Disclosure - Earnings Per Common Share Attributable to Pfizer Inc. Common Shareholders (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesTables" roleURI="http://www.pfizer.com/role/LeasesTables">
+        <link:definition>9955525 - Disclosure - Leases (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationTables" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationTables">
+        <link:definition>9955526 - Disclosure - Segment, Geographic and Other Revenue Information (Tables)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="BasisofPresentationandSignificantAccountingPoliciesNarrativeDetails" roleURI="http://www.pfizer.com/role/BasisofPresentationandSignificantAccountingPoliciesNarrativeDetails">
+        <link:definition>9955527 - Disclosure - Basis of Presentation and Significant Accounting Policies - Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="BasisofPresentationandSignificantAccountingPoliciesAccruedRebatesandOtherAccrualsDetails" roleURI="http://www.pfizer.com/role/BasisofPresentationandSignificantAccountingPoliciesAccruedRebatesandOtherAccrualsDetails">
+        <link:definition>9955528 - Disclosure - Basis of Presentation and Significant Accounting Policies - Accrued Rebates and Other Accruals (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsAcquisitionsDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsAcquisitionsDetails">
+        <link:definition>9955529 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Acquisitions (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsPurchasePriceAllocationDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsPurchasePriceAllocationDetails">
+        <link:definition>9955530 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Purchase Price Allocation (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsPurchasePriceAllocationFootnotesDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsPurchasePriceAllocationFootnotesDetails">
+        <link:definition>9955531 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Purchase Price Allocation - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsProFormaInformationDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsProFormaInformationDetails">
+        <link:definition>9955532 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Pro Forma Information (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsProFormaInformationFootnotesDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsProFormaInformationFootnotesDetails">
+        <link:definition>9955533 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Pro Forma Information - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsDivestituresDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsDivestituresDetails">
+        <link:definition>9955534 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Divestitures (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsChangeintheCarryingValueofEquityMethodInvestmentDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsChangeintheCarryingValueofEquityMethodInvestmentDetails">
+        <link:definition>9955535 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Change in the Carrying Value of Equity Method Investment (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsChangeintheCarryingValueofEquityMethodInvestmentFootnotesDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsChangeintheCarryingValueofEquityMethodInvestmentFootnotesDetails">
+        <link:definition>9955536 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Change in the Carrying Value of Equity Method Investment - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsSummarizedFinancialInformationofEquityMethodInvesteeDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsSummarizedFinancialInformationofEquityMethodInvesteeDetails">
+        <link:definition>9955537 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Summarized Financial Information of Equity Method Investee (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsEquityMethodInvestmentsDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsEquityMethodInvestmentsDetails">
+        <link:definition>9955538 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Equity Method Investments (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsScheduleofCollaborativeArrangementsandNoncollaborativeArrangementTransactionsDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsScheduleofCollaborativeArrangementsandNoncollaborativeArrangementTransactionsDetails">
+        <link:definition>9955539 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Schedule of Collaborative Arrangements and Non-collaborative Arrangement Transactions (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsResearchandDevelopmentArrangementDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsResearchandDevelopmentArrangementDetails">
+        <link:definition>9955540 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - Research and Development Arrangement (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsInLicensingArrangementsDetails" roleURI="http://www.pfizer.com/role/AcquisitionsDivestituresEquityMethodInvestmentsCollaborativeArrangementsResearchandDevelopmentArrangementsandInLicensingArrangementsInLicensingArrangementsDetails">
+        <link:definition>9955541 - Disclosure - Acquisitions, Divestitures, Equity-Method Investments, Collaborative Arrangements, Research and Development Arrangements and In-Licensing Arrangements - In-Licensing Arrangements (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesNarrativeDetail" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesNarrativeDetail">
+        <link:definition>9955542 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives - Narrative (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesCostsDetail" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesCostsDetail">
+        <link:definition>9955543 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives - Costs (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesCostsFootnotesDetail" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesCostsFootnotesDetail">
+        <link:definition>9955544 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives - Costs - Footnotes (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesRestructuringAccrualsDetail" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesRestructuringAccrualsDetail">
+        <link:definition>9955545 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives - Restructuring Accruals (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesRestructuringAccrualsFootnotesDetail" roleURI="http://www.pfizer.com/role/RestructuringChargesandOtherCostsAssociatedwithAcquisitionsandCostReductionProductivityInitiativesRestructuringAccrualsFootnotesDetail">
+        <link:definition>9955546 - Disclosure - Restructuring Charges and Other Costs Associated with Acquisitions and Cost-Reduction/Productivity Initiatives - Restructuring Accruals - Footnotes (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherIncomeDeductionsNetScheduleofOtherNonoperatingIncomeExpenseDetails" roleURI="http://www.pfizer.com/role/OtherIncomeDeductionsNetScheduleofOtherNonoperatingIncomeExpenseDetails">
+        <link:definition>9955547 - Disclosure - Other (Income)/Deductions&#8212;Net - Schedule of Other Nonoperating Income (Expense) (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherIncomeDeductionsNetScheduleofOtherNonoperatingIncomeExpenseFootnotesDetails" roleURI="http://www.pfizer.com/role/OtherIncomeDeductionsNetScheduleofOtherNonoperatingIncomeExpenseFootnotesDetails">
+        <link:definition>9955548 - Disclosure - Other (Income)/Deductions&#8212;Net - Schedule of Other Nonoperating Income (Expense) - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherIncomeDeductionsNetScheduleofAdditionalInformationAboutIntangibleAssetsImpairedDetails" roleURI="http://www.pfizer.com/role/OtherIncomeDeductionsNetScheduleofAdditionalInformationAboutIntangibleAssetsImpairedDetails">
+        <link:definition>9955549 - Disclosure - Other (Income)/Deductions&#8212;Net - Schedule of Additional Information About Intangible Assets Impaired (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersIncomefromContinuingOperationsBeforeProvisionforTaxesonIncomeDetails" roleURI="http://www.pfizer.com/role/TaxMattersIncomefromContinuingOperationsBeforeProvisionforTaxesonIncomeDetails">
+        <link:definition>9955550 - Disclosure - Tax Matters - Income from Continuing Operations Before Provision for Taxes on Income (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersProvisionforTaxesonIncomeDetails" roleURI="http://www.pfizer.com/role/TaxMattersProvisionforTaxesonIncomeDetails">
+        <link:definition>9955551 - Disclosure - Tax Matters - Provision for Taxes on Income (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersNarrativeDetails" roleURI="http://www.pfizer.com/role/TaxMattersNarrativeDetails">
+        <link:definition>9955552 - Disclosure - Tax Matters - Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersScheduleofCashPaidforIncomeTaxesNetofRefundsDetails" roleURI="http://www.pfizer.com/role/TaxMattersScheduleofCashPaidforIncomeTaxesNetofRefundsDetails">
+        <link:definition>9955553 - Disclosure - Tax Matters - Schedule of Cash Paid for Income Taxes, Net of Refunds (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersTaxRateReconciliationDetails" roleURI="http://www.pfizer.com/role/TaxMattersTaxRateReconciliationDetails">
+        <link:definition>9955554 - Disclosure - Tax Matters - Tax Rate Reconciliation (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersDeferredTaxesDetails" roleURI="http://www.pfizer.com/role/TaxMattersDeferredTaxesDetails">
+        <link:definition>9955555 - Disclosure - Tax Matters - Deferred Taxes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersDeferredTaxesFootnotesDetails" roleURI="http://www.pfizer.com/role/TaxMattersDeferredTaxesFootnotesDetails">
+        <link:definition>9955556 - Disclosure - Tax Matters - Deferred Taxes - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersReconciliationofGrossUnrecognizedTaxBenefitsDetails" roleURI="http://www.pfizer.com/role/TaxMattersReconciliationofGrossUnrecognizedTaxBenefitsDetails">
+        <link:definition>9955557 - Disclosure - Tax Matters - Reconciliation of Gross Unrecognized Tax Benefits (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersReconciliationofGrossUnrecognizedTaxBenefitsFootnotesDetails" roleURI="http://www.pfizer.com/role/TaxMattersReconciliationofGrossUnrecognizedTaxBenefitsFootnotesDetails">
+        <link:definition>9955558 - Disclosure - Tax Matters - Reconciliation of Gross Unrecognized Tax Benefits - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="TaxMattersTaxesonItemsofOtherComprehensiveIncomeLossDetails" roleURI="http://www.pfizer.com/role/TaxMattersTaxesonItemsofOtherComprehensiveIncomeLossDetails">
+        <link:definition>9955559 - Disclosure - Tax Matters - Taxes on Items of Other Comprehensive Income/(Loss) (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterestsDetails" roleURI="http://www.pfizer.com/role/AccumulatedOtherComprehensiveLossExcludingNoncontrollingInterestsDetails">
+        <link:definition>9955560 - Disclosure - Accumulated Other Comprehensive Loss, Excluding Noncontrolling Interests (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsFinancialAssetsandLiabilitiesMeasuredatFairValueonaRecurringBasisDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsFinancialAssetsandLiabilitiesMeasuredatFairValueonaRecurringBasisDetails">
+        <link:definition>9955561 - Disclosure - Financial Instruments - Financial Assets and Liabilities Measured at Fair Value on a Recurring Basis (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsFinancialAssetsandLiabilitiesMeasuredatFairValueonaRecurringBasisFootnotesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsFinancialAssetsandLiabilitiesMeasuredatFairValueonaRecurringBasisFootnotesDetails">
+        <link:definition>9955562 - Disclosure - Financial Instruments - Financial Assets and Liabilities Measured at Fair Value on a Recurring Basis - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsScheduleofChangesinContingentConsiderationLiabilitiesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsScheduleofChangesinContingentConsiderationLiabilitiesDetails">
+        <link:definition>9955563 - Disclosure - Financial Instruments - Schedule of Changes in Contingent Consideration Liabilities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsAssetsandLiabilitiesNotMeasuredatFairValueonaRecurringBasisDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsAssetsandLiabilitiesNotMeasuredatFairValueonaRecurringBasisDetails">
+        <link:definition>9955564 - Disclosure - Financial Instruments - Assets and Liabilities Not Measured at Fair Value on a Recurring Basis (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsInvestmentsDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsInvestmentsDetails">
+        <link:definition>9955565 - Disclosure - Financial Instruments - Investments (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsInvestmentsDebtSecuritiesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsInvestmentsDebtSecuritiesDetails">
+        <link:definition>9955566 - Disclosure - Financial Instruments - Investments - Debt Securities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsInvestmentsUnrealizedGainsandLossesRelatedtoEquitySecuritiesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsInvestmentsUnrealizedGainsandLossesRelatedtoEquitySecuritiesDetails">
+        <link:definition>9955567 - Disclosure - Financial Instruments - Investments - Unrealized Gains and Losses Related to Equity Securities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsInvestmentsUnrealizedGainsandLossesRelatedtoEquitySecuritiesFootnotesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsInvestmentsUnrealizedGainsandLossesRelatedtoEquitySecuritiesFootnotesDetails">
+        <link:definition>9955568 - Disclosure - Financial Instruments - Investments - Unrealized Gains and Losses Related to Equity Securities - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsShortTermBorrowingsDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsShortTermBorrowingsDetails">
+        <link:definition>9955569 - Disclosure - Financial Instruments - Short-Term Borrowings (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsShortTermBorrowingsFootnotesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsShortTermBorrowingsFootnotesDetails">
+        <link:definition>9955570 - Disclosure - Financial Instruments - Short-Term Borrowings - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsLongTermDebtDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsLongTermDebtDetails">
+        <link:definition>9955571 - Disclosure - Financial Instruments - Long-Term Debt (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsLongTermDebtNewIssuancesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsLongTermDebtNewIssuancesDetails">
+        <link:definition>9955572 - Disclosure - Financial Instruments - Long-Term Debt, New Issuances (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesNarrativeDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesNarrativeDetails">
+        <link:definition>9955573 - Disclosure - Financial Instruments - Derivative Financial Instruments and Hedging Activities- Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsFairValueofDerivativeFinancialInstrumentsandRelatedNotionalAmountsDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsFairValueofDerivativeFinancialInstrumentsandRelatedNotionalAmountsDetails">
+        <link:definition>9955574 - Disclosure - Financial Instruments - Fair Value of Derivative Financial Instruments and Related Notional Amounts (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesDetails">
+        <link:definition>9955575 - Disclosure - Financial Instruments - Derivative Financial Instruments and Hedging Activities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesFootnotesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsDerivativeFinancialInstrumentsandHedgingActivitiesFootnotesDetails">
+        <link:definition>9955576 - Disclosure - Financial Instruments - Derivative Financial Instruments and Hedging Activities - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsCumulativeBasisAdjustmentsforFairValueHedgesDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsCumulativeBasisAdjustmentsforFairValueHedgesDetails">
+        <link:definition>9955577 - Disclosure - Financial Instruments - Cumulative Basis Adjustments for Fair Value Hedges (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="FinancialInstrumentsCreditRiskDetails" roleURI="http://www.pfizer.com/role/FinancialInstrumentsCreditRiskDetails">
+        <link:definition>9955578 - Disclosure - Financial Instruments - Credit Risk (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherFinancialInformationInventoriesDetails" roleURI="http://www.pfizer.com/role/OtherFinancialInformationInventoriesDetails">
+        <link:definition>9955579 - Disclosure - Other Financial Information - Inventories (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherFinancialInformationOtherCurrentLiabilitiesDetails" roleURI="http://www.pfizer.com/role/OtherFinancialInformationOtherCurrentLiabilitiesDetails">
+        <link:definition>9955580 - Disclosure - Other Financial Information - Other Current Liabilities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="OtherFinancialInformationSupplierFinanceProgramObligationDetails" roleURI="http://www.pfizer.com/role/OtherFinancialInformationSupplierFinanceProgramObligationDetails">
+        <link:definition>9955581 - Disclosure - Other Financial Information - Supplier Finance Program Obligation (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PropertyPlantandEquipmentComponentsofPropertyPlantandEquipmentNetDetails" roleURI="http://www.pfizer.com/role/PropertyPlantandEquipmentComponentsofPropertyPlantandEquipmentNetDetails">
+        <link:definition>9955582 - Disclosure - Property, Plant and Equipment - Components of Property, Plant and Equipment, Net (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PropertyPlantandEquipmentLonglivedAssetsbyGeographicAreasNetDetails" roleURI="http://www.pfizer.com/role/PropertyPlantandEquipmentLonglivedAssetsbyGeographicAreasNetDetails">
+        <link:definition>9955583 - Disclosure - Property, Plant and Equipment - Long-lived Assets by Geographic Areas, Net (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillFinitelivedandIndefinitelivedIntangibleAssetsDetails" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillFinitelivedandIndefinitelivedIntangibleAssetsDetails">
+        <link:definition>9955584 - Disclosure - Identifiable Intangible Assets, Net and Goodwill - Finite-lived and Indefinite-lived Intangible Assets (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillFinitelivedandIndefinitelivedIntangibleAssetsFootnotesDetails" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillFinitelivedandIndefinitelivedIntangibleAssetsFootnotesDetails">
+        <link:definition>9955585 - Disclosure - Identifiable Intangible Assets, Net and Goodwill - Finite-lived and Indefinite-lived Intangible Assets - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillNarrativeDetails" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillNarrativeDetails">
+        <link:definition>9955586 - Disclosure - Identifiable Intangible Assets, Net and Goodwill - Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillExpectedAnnualAmortizationExpenseDetails" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillExpectedAnnualAmortizationExpenseDetails">
+        <link:definition>9955587 - Disclosure - Identifiable Intangible Assets, Net and Goodwill - Expected Annual Amortization Expense (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="IdentifiableIntangibleAssetsNetandGoodwillGoodwillDetails" roleURI="http://www.pfizer.com/role/IdentifiableIntangibleAssetsNetandGoodwillGoodwillDetails">
+        <link:definition>9955588 - Disclosure - Identifiable Intangible Assets, Net and Goodwill - Goodwill (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansScheduleofNetPeriodicBenefitCostsDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansScheduleofNetPeriodicBenefitCostsDetails">
+        <link:definition>9955589 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Schedule of Net Periodic Benefit Costs (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansWeightedAverageActuarialAssumptionsDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansWeightedAverageActuarialAssumptionsDetails">
+        <link:definition>9955590 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Weighted-Average Actuarial Assumptions (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansHealthcareCostTrendRateAssumptionsDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansHealthcareCostTrendRateAssumptionsDetails">
+        <link:definition>9955591 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Healthcare Cost Trend Rate Assumptions (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansObligationsandFundedStatusDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansObligationsandFundedStatusDetails">
+        <link:definition>9955592 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Obligations and Funded Status (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansPlanAssetsDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansPlanAssetsDetails">
+        <link:definition>9955593 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Plan Assets (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansLongtermTargetAssetAllocationsRangesandthePercentageoftheFairValueofPlanAssetsDetail" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansLongtermTargetAssetAllocationsRangesandthePercentageoftheFairValueofPlanAssetsDetail">
+        <link:definition>9955594 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Long-term Target Asset Allocations Ranges and the Percentage of the Fair Value of Plan Assets (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansAnalysisofChangesinSignificantInvestmentsValuedUsingSignificantUnobservableInputsDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansAnalysisofChangesinSignificantInvestmentsValuedUsingSignificantUnobservableInputsDetails">
+        <link:definition>9955595 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Analysis of Changes in Significant Investments Valued Using Significant Unobservable Inputs (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansExpectedFutureCashFlowInformationDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansExpectedFutureCashFlowInformationDetails">
+        <link:definition>9955596 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Expected Future Cash Flow Information (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="PensionandPostretirementBenefitPlansandDefinedContributionPlansNarrativeDetails" roleURI="http://www.pfizer.com/role/PensionandPostretirementBenefitPlansandDefinedContributionPlansNarrativeDetails">
+        <link:definition>9955597 - Disclosure - Pension and Postretirement Benefit Plans and Defined Contribution Plans - Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="EquityDetails" roleURI="http://www.pfizer.com/role/EquityDetails">
+        <link:definition>9955598 - Disclosure - Equity (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsNarrativeDetail" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsNarrativeDetail">
+        <link:definition>9955599 - Disclosure - Share-Based Payments - Narrative (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsScheduleofSharebasedCompensationAwardsandValuationDetailsDetails" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsScheduleofSharebasedCompensationAwardsandValuationDetailsDetails">
+        <link:definition>9955600 - Disclosure - Share-Based Payments - Schedule of Share-based Compensation Awards and Valuation Details (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsSummaryofDataRelatedtoSharebasedPaymentArrangementActivityDetails" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsSummaryofDataRelatedtoSharebasedPaymentArrangementActivityDetails">
+        <link:definition>9955601 - Disclosure - Share-Based Payments - Summary of Data Related to Share-based Payment Arrangement Activity (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsScheduleofValuationAssumptionsDetail" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsScheduleofValuationAssumptionsDetail">
+        <link:definition>9955602 - Disclosure - Share-Based Payments - Schedule of Valuation Assumptions (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsScheduleofSharebasedPaymentArrangementActivityDetail" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsScheduleofSharebasedPaymentArrangementActivityDetail">
+        <link:definition>9955603 - Disclosure - Share-Based Payments - Schedule of Share-based Payment Arrangement Activity (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsSummaryofTSRUandPTUActivityDetails" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsSummaryofTSRUandPTUActivityDetails">
+        <link:definition>9955604 - Disclosure - Share-Based Payments - Summary of TSRU and PTU Activity (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ShareBasedPaymentsScheduleofSharebasedCompensationStockOptionsActivityDetail" roleURI="http://www.pfizer.com/role/ShareBasedPaymentsScheduleofSharebasedCompensationStockOptionsActivityDetail">
+        <link:definition>9955605 - Disclosure - Share-Based Payments - Schedule of Share-based Compensation, Stock Options, Activity (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="EarningsPerCommonShareAttributabletoPfizerIncCommonShareholdersDetails" roleURI="http://www.pfizer.com/role/EarningsPerCommonShareAttributabletoPfizerIncCommonShareholdersDetails">
+        <link:definition>9955606 - Disclosure - Earnings Per Common Share Attributable to Pfizer Inc. Common Shareholders (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesNarrativeDetails" roleURI="http://www.pfizer.com/role/LeasesNarrativeDetails">
+        <link:definition>9955607 - Disclosure - Leases - Narrative (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesScheduleofLeaseAssetsandLiabilitiesDetails" roleURI="http://www.pfizer.com/role/LeasesScheduleofLeaseAssetsandLiabilitiesDetails">
+        <link:definition>9955608 - Disclosure - Leases - Schedule of Lease Assets and Liabilities (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesScheduleofLeaseCostsandOtherSupplementalInformationDetails" roleURI="http://www.pfizer.com/role/LeasesScheduleofLeaseCostsandOtherSupplementalInformationDetails">
+        <link:definition>9955609 - Disclosure - Leases - Schedule of Lease Costs and Other Supplemental Information (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesScheduleofFutureMinimumRentalPaymentsforOperatingLeasesDetail" roleURI="http://www.pfizer.com/role/LeasesScheduleofFutureMinimumRentalPaymentsforOperatingLeasesDetail">
+        <link:definition>9955610 - Disclosure - Leases - Schedule of Future Minimum Rental Payments for Operating Leases (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="LeasesScheduleofFutureMinimumRentalPaymentsforOperatingLeasesDetail_1" roleURI="http://www.pfizer.com/role/LeasesScheduleofFutureMinimumRentalPaymentsforOperatingLeasesDetail_1">
+        <link:definition>9955610 - Disclosure - Leases - Schedule of Future Minimum Rental Payments for Operating Leases (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ContingenciesandCertainCommitmentsPatentLitigationDetails" roleURI="http://www.pfizer.com/role/ContingenciesandCertainCommitmentsPatentLitigationDetails">
+        <link:definition>9955611 - Disclosure - Contingencies and Certain Commitments - Patent Litigation (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ContingenciesandCertainCommitmentsLegalProceedingsGovernmentInvestigationsDetails" roleURI="http://www.pfizer.com/role/ContingenciesandCertainCommitmentsLegalProceedingsGovernmentInvestigationsDetails">
+        <link:definition>9955612 - Disclosure - Contingencies and Certain Commitments - Legal Proceedings-Government Investigations (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="ContingenciesandCertainCommitmentsCertainCommitmentsandContingentConsiderationforAcquisitionsDetails" roleURI="http://www.pfizer.com/role/ContingenciesandCertainCommitmentsCertainCommitmentsandContingentConsiderationforAcquisitionsDetails">
+        <link:definition>9955613 - Disclosure - Contingencies and Certain Commitments - Certain Commitments and Contingent Consideration for Acquisitions (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationNarrativeDetail" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationNarrativeDetail">
+        <link:definition>9955614 - Disclosure - Segment, Geographic and Other Revenue Information - Narrative (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationScheduleofSegmentReportingInformationbySegmentDetails" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationScheduleofSegmentReportingInformationbySegmentDetails">
+        <link:definition>9955615 - Disclosure - Segment, Geographic and Other Revenue Information - Schedule of Segment Reporting Information by Segment (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationScheduleofSignificantBiopharmaSegmentExpensesDetails" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationScheduleofSignificantBiopharmaSegmentExpensesDetails">
+        <link:definition>9955616 - Disclosure - Segment, Geographic and Other Revenue Information - Schedule of Significant Biopharma Segment Expenses (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationRevenuesbyGeographicAreaDetail" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationRevenuesbyGeographicAreaDetail">
+        <link:definition>9955617 - Disclosure - Segment, Geographic and Other Revenue Information - Revenues by Geographic Area (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationSchedulesofConcentrationofRiskDetails" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationSchedulesofConcentrationofRiskDetails">
+        <link:definition>9955618 - Disclosure - Segment, Geographic and Other Revenue Information - Schedules of Concentration of Risk (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationRevenuesbyProductDetail" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationRevenuesbyProductDetail">
+        <link:definition>9955619 - Disclosure - Segment, Geographic and Other Revenue Information - Revenues by Product (Detail)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType id="SegmentGeographicandOtherRevenueInformationRevenuesbyProductFootnotesDetails" roleURI="http://www.pfizer.com/role/SegmentGeographicandOtherRevenueInformationRevenuesbyProductFootnotesDetails">
+        <link:definition>9955620 - Disclosure - Segment, Geographic and Other Revenue Information - Revenues by Product - Footnotes (Details)</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element id="pfe_NotesDue20271.000Member" abstract="true" name="NotesDue20271.000Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NotesDue20292.875Member" abstract="true" name="NotesDue20292.875Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NotesDue20323.250Member" abstract="true" name="NotesDue20323.250Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NotesDue20373.875Member" abstract="true" name="NotesDue20373.875Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NotesDue20454.250Member" abstract="true" name="NotesDue20454.250Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AuditInformationAbstract" abstract="true" name="AuditInformationAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_AmortizationOfIntangibleAssetsNotAssociatedWithSingleFunction" abstract="false" name="AmortizationOfIntangibleAssetsNotAssociatedWithSingleFunction" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_RestructuringChargesAndAcquisitionRelatedCosts" abstract="false" name="RestructuringChargesAndAcquisitionRelatedCosts" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossCurtailmentAdjustmentfromAOCIPensionandOtherPostretirementBenefitPlansforNetPriorServiceCostCreditbeforeTax" abstract="false" name="OtherComprehensiveIncomeLossCurtailmentAdjustmentfromAOCIPensionandOtherPostretirementBenefitPlansforNetPriorServiceCostCreditbeforeTax" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherTaxAssetsCurrent" abstract="false" name="OtherTaxAssetsCurrent" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsNetAndOtherTaxAssetsNoncurrent" abstract="false" name="DeferredTaxAssetsNetAndOtherTaxAssetsNoncurrent" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_StockIssuedDuringPeriodValueShareBasedCompensationAndTreasuryStockValueAcquiredCostMethod" abstract="false" name="StockIssuedDuringPeriodValueShareBasedCompensationAndTreasuryStockValueAcquiredCostMethod" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_AssetWriteOffsAndAssetImpairmentCharges" abstract="false" name="AssetWriteOffsAndAssetImpairmentCharges" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_PensionAndOtherPostretirementBenefitContributionsNetOfPensionAndOtherPostretirementBenefitExpense" abstract="false" name="PensionAndOtherPostretirementBenefitContributionsNetOfPensionAndOtherPostretirementBenefitExpense" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_PaymentsForProceedsFromShortTermInvestmentsWithOriginalMaturitiesOfThreeMonthsOrLess" abstract="false" name="PaymentsForProceedsFromShortTermInvestmentsWithOriginalMaturitiesOfThreeMonthsOrLess" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_InterestPaidReceivedInterestRateHedges" abstract="false" name="InterestPaidReceivedInterestRateHedges" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BusinessCombinationsDiscontinuedOperationsAndDisposalGroupsCollaborativeArrangementsAndEquityMethodInvestmentsAbstract" abstract="true" name="BusinessCombinationsDiscontinuedOperationsAndDisposalGroupsCollaborativeArrangementsAndEquityMethodInvestmentsAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_BusinessCombinationsDisposalGroupsIncludingDiscontinuedOperationsCollaborativeArrangementsEquityandCostMethodInvestmentsDisclosureTextBlock" abstract="false" name="BusinessCombinationsDisposalGroupsIncludingDiscontinuedOperationsCollaborativeArrangementsEquityandCostMethodInvestmentsDisclosureTextBlock" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:textBlockItemType"/>
+  <xs:element id="pfe_OtherFinancialInformationAbstract" abstract="true" name="OtherFinancialInformationAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ScheduleofOtherComprehensiveIncomeLossComponentsofIncomeTaxExpenseBenefitTableTextBlock" abstract="false" name="ScheduleofOtherComprehensiveIncomeLossComponentsofIncomeTaxExpenseBenefitTableTextBlock" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:textBlockItemType"/>
+  <xs:element id="pfe_DebtSecuritiesTradingAndEquitySecuritiesFVNITableTextBlock" abstract="false" name="DebtSecuritiesTradingAndEquitySecuritiesFVNITableTextBlock" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:textBlockItemType"/>
+  <xs:element id="pfe_ScheduleOfShareBasedPaymentAwardValuationAssumptionsTableTextBlock" abstract="false" name="ScheduleOfShareBasedPaymentAwardValuationAssumptionsTableTextBlock" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:textBlockItemType"/>
+  <xs:element id="pfe_LeaseAssetsAndLiabilitiesLesseeTableTextBlock" abstract="false" name="LeaseAssetsAndLiabilitiesLesseeTableTextBlock" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:textBlockItemType"/>
+  <xs:element id="pfe_TopTwelveProductsMember" abstract="true" name="TopTwelveProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TopElevenProductsMember" abstract="true" name="TopElevenProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TopNineProductsMember" abstract="true" name="TopNineProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ConcentrationRiskAmount" abstract="false" name="ConcentrationRiskAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ScheduleOfAccruedLiabilitiesTable" abstract="true" name="ScheduleOfAccruedLiabilitiesTable" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:hypercubeItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ScheduleOfAccruedLiabilitiesLineItems" abstract="true" name="ScheduleOfAccruedLiabilitiesLineItems" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_RebatesAndOtherSalesRelatedAccruals" abstract="false" name="RebatesAndOtherSalesRelatedAccruals" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_AccruedRebates" abstract="false" name="AccruedRebates" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherAccruals" abstract="false" name="OtherAccruals" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_MetseraMember" abstract="true" name="MetseraMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeagenMember" abstract="true" name="SeagenMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AmortizationExpenseMember" abstract="true" name="AmortizationExpenseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_MilestonePaymentsAxis" abstract="true" name="MilestonePaymentsAxis" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:dimensionItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_MilestonePaymentsDomain" abstract="true" name="MilestonePaymentsDomain" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TotalPaymentsToFormerMetseraShareholdersMember" abstract="true" name="TotalPaymentsToFormerMetseraShareholdersMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_Phase3ClinicalTrialMember" abstract="true" name="Phase3ClinicalTrialMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_FDAApprovalOfMET097iMember" abstract="true" name="FDAApprovalOfMET097iMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_FDAApprovalOfMET097iMET233iMember" abstract="true" name="FDAApprovalOfMET097iMET233iMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NumberOfMilestonePayments" abstract="false" name="NumberOfMilestonePayments" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_BusinessCombinationConsiderationTransferredContingentValueRight" abstract="false" name="BusinessCombinationConsiderationTransferredContingentValueRight" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_NumberOfApprovedMedicines" abstract="false" name="NumberOfApprovedMedicines" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_BusinessCombinationIdentifiableAssetAcquiredAndLiabilityAssumedDeferredTaxLiabilitiesGross" abstract="false" name="BusinessCombinationIdentifiableAssetAcquiredAndLiabilityAssumedDeferredTaxLiabilitiesGross" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DevelopedTechnologyRightsAndOtherIntangibleAssetsMember" abstract="true" name="DevelopedTechnologyRightsAndOtherIntangibleAssetsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedWorkingCapitalExcludingInventories" abstract="false" name="BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedWorkingCapitalExcludingInventories" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedNetIncomeTaxAccounts" abstract="false" name="BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedNetIncomeTaxAccounts" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedInventoryCurrent" abstract="false" name="BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedInventoryCurrent" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedInventoryNoncurrent" abstract="false" name="BusinessCombinationRecognizedIdentifiableAssetsAcquiredAndLiabilitiesAssumedInventoryNoncurrent" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_RestructuringIntegrationAndAcquisitionRelatedCostsMember" abstract="true" name="RestructuringIntegrationAndAcquisitionRelatedCostsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DepreciationExpenseMember" abstract="true" name="DepreciationExpenseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ViatrisMember" abstract="true" name="ViatrisMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AgreementAxis" abstract="true" name="AgreementAxis" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:dimensionItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_AgreementDomain" abstract="true" name="AgreementDomain" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ManufacturingAndSupplyAgreementMember" abstract="true" name="ManufacturingAndSupplyAgreementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ProceedsAndMilestonePaymentsExpectedToBeReceivedFromDivestitureOfBusinessMaximum" abstract="false" name="ProceedsAndMilestonePaymentsExpectedToBeReceivedFromDivestitureOfBusinessMaximum" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_HaleonMember" abstract="true" name="HaleonMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentIncreaseDecreaseForeignCurrencyTranslation" abstract="false" name="EquityMethodInvestmentIncreaseDecreaseForeignCurrencyTranslation" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentIncreaseDecreaseBasisDifferenceAdjustmentsAndAmortization" abstract="false" name="EquityMethodInvestmentIncreaseDecreaseBasisDifferenceAdjustmentsAndAmortization" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentIncreaseDecreaseInvesteeCapitalTransaction" abstract="false" name="EquityMethodInvestmentIncreaseDecreaseInvesteeCapitalTransaction" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentIncreaseDecreaseTransferToInvestments" abstract="false" name="EquityMethodInvestmentIncreaseDecreaseTransferToInvestments" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ViivHealthcareLimitedMember" abstract="true" name="ViivHealthcareLimitedMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentSummarizedFinancialInformationBalanceSheetAbstract" abstract="true" name="EquityMethodInvestmentSummarizedFinancialInformationBalanceSheetAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_BusinessCombinationsDisposalGroupsIncludingDiscontinuedOperationsEquityMethodInvestmentsAndResearchAndDevelopmentArrangementAbstract" abstract="true" name="BusinessCombinationsDisposalGroupsIncludingDiscontinuedOperationsEquityMethodInvestmentsAndResearchAndDevelopmentArrangementAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_SaleOfEquityMethodInvestmentInPrivatePlacementMember" abstract="true" name="SaleOfEquityMethodInvestmentInPrivatePlacementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SaleOfEquityMethodInvestmentInPublicStockOfferingMember" abstract="true" name="SaleOfEquityMethodInvestmentInPublicStockOfferingMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EquityMethodInvestmentPercentageOfHoldingsSold" abstract="false" name="EquityMethodInvestmentPercentageOfHoldingsSold" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCostNetOfReimbursement" abstract="false" name="ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCostNetOfReimbursement" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_AbingworthMember" abstract="true" name="AbingworthMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BlackstoneMember" abstract="true" name="BlackstoneMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BlackstoneMarch2025ArrangementMember" abstract="true" name="BlackstoneMarch2025ArrangementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BlackstoneApril2023ArrangementMember" abstract="true" name="BlackstoneApril2023ArrangementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ClinicalTrialAgreementTermsMember" abstract="true" name="ClinicalTrialAgreementTermsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ApprovalBasedPaymentPeriodMember" abstract="true" name="ApprovalBasedPaymentPeriodMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NetSalesAndRoyaltyAgreementTermsMember" abstract="true" name="NetSalesAndRoyaltyAgreementTermsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementMaximumFundingAmount" abstract="false" name="ResearchAndDevelopmentArrangementMaximumFundingAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementContingentPaymentsMaximumExposure1" abstract="false" name="ResearchAndDevelopmentArrangementContingentPaymentsMaximumExposure1" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementContingentPaymentsPaymentPeriod" abstract="false" name="ResearchAndDevelopmentArrangementContingentPaymentsPaymentPeriod" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementFundingToOffsetCostsIncurred" abstract="false" name="ResearchAndDevelopmentArrangementFundingToOffsetCostsIncurred" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_YaoPharmaMember" abstract="true" name="YaoPharmaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_A3SBioMember" abstract="true" name="A3SBioMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InLicensingAgreementMember" abstract="true" name="InLicensingAgreementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InLicensingAgreementOptionMember" abstract="true" name="InLicensingAgreementOptionMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementUpfrontPayment" abstract="false" name="ResearchAndDevelopmentArrangementUpfrontPayment" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ResearchAndDevelopmentArrangementContingentPaymentsOptionExerciseFee" abstract="false" name="ResearchAndDevelopmentArrangementContingentPaymentsOptionExerciseFee" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_RealigningOurCostBaseProgramInitialPhaseMember" abstract="true" name="RealigningOurCostBaseProgramInitialPhaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_RealigningOurCostBaseProgramResearchAndDevelopmentMember" abstract="true" name="RealigningOurCostBaseProgramResearchAndDevelopmentMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_RealigningOurCostBaseProgramMember" abstract="true" name="RealigningOurCostBaseProgramMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ManufacturingOptimizationProgramPhaseOneMember" abstract="true" name="ManufacturingOptimizationProgramPhaseOneMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ManufacturingOptimizationProgramMember" abstract="true" name="ManufacturingOptimizationProgramMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BiopharmaSegmentMember" abstract="true" name="BiopharmaSegmentMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_RestructuringAssetImpairmentCharges" abstract="false" name="RestructuringAssetImpairmentCharges" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BusinessCombinationAcquisitionRelatedCostsTransactionCosts" abstract="false" name="BusinessCombinationAcquisitionRelatedCostsTransactionCosts" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ImplementationCostAbstract" abstract="true" name="ImplementationCostAbstract" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ImplementationCosts" abstract="false" name="ImplementationCosts" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_RestructuringChargesAcquisitionRelatedCostsandImplementationCosts" abstract="false" name="RestructuringChargesAcquisitionRelatedCostsandImplementationCosts" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_RestructuringChargesAndAcquisitionRelatedCostsMember" abstract="true" name="RestructuringChargesAndAcquisitionRelatedCostsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TransformingToAMoreFocusedCompanyPlanMember" abstract="true" name="TransformingToAMoreFocusedCompanyPlanMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AssetImpairmentsMember" abstract="true" name="AssetImpairmentsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PaymentsforRestructuringOtherRestructuringAndRestructuringTranslationAdjustment" abstract="false" name="PaymentsforRestructuringOtherRestructuringAndRestructuringTranslationAdjustment" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_IncomeLossFromCollaborationsLicensingAgreementsAndSalesOfCompoundProductRights" abstract="false" name="IncomeLossFromCollaborationsLicensingAgreementsAndSalesOfCompoundProductRights" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_IncomeLossFromEquityMethodInvestmentsNetExcessBasisAmortization" abstract="false" name="IncomeLossFromEquityMethodInvestmentsNetExcessBasisAmortization" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherNonoperatingIncomeExpenseNet" abstract="false" name="OtherNonoperatingIncomeExpenseNet" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_BrandMember" abstract="true" name="BrandMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TelavantHoldingsIncMember" abstract="true" name="TelavantHoldingsIncMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CerevelTherapeuticsHoldingsIncMember" abstract="true" name="CerevelTherapeuticsHoldingsIncMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BioNTechMember" abstract="true" name="BioNTechMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NimbusMember" abstract="true" name="NimbusMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DisitamabVedotinMember" abstract="true" name="DisitamabVedotinMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TukysaMember" abstract="true" name="TukysaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OsivelotorMember" abstract="true" name="OsivelotorMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_U.S.SterileInjectableAndHospitalProductsMember" abstract="true" name="U.S.SterileInjectableAndHospitalProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_B7H4VFelmetatugVedotinMember" abstract="true" name="B7H4VFelmetatugVedotinMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_MedrolMember" abstract="true" name="MedrolMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ZavzpretMember" abstract="true" name="ZavzpretMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EtrasimodVelsipityMember" abstract="true" name="EtrasimodVelsipityMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_Prevnar13Member" abstract="true" name="Prevnar13Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_IndefiniteLivedIntangibleAssetsAndFiniteLivedIntangibleAssetsByMajorClassAxis" abstract="true" name="IndefiniteLivedIntangibleAssetsAndFiniteLivedIntangibleAssetsByMajorClassAxis" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:dimensionItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_IndefiniteLivedIntangibleAssetsAndFiniteLivedIntangibleAssetsByMajorClassDomain" abstract="true" name="IndefiniteLivedIntangibleAssetsAndFiniteLivedIntangibleAssetsByMajorClassDomain" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherDevelopedTechnologyRightsInProcessResearchAndDevelopmentAndFiniteLivedLicensingAgreementMember" abstract="true" name="OtherDevelopedTechnologyRightsInProcessResearchAndDevelopmentAndFiniteLivedLicensingAgreementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherInProcessResearchAndDevelopmentAndDevelopedTechnologyRightsMember" abstract="true" name="OtherInProcessResearchAndDevelopmentAndDevelopedTechnologyRightsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_IntangibleAssetsFairValueDisclosure" abstract="false" name="IntangibleAssetsFairValueDisclosure" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_IntangibleAssetStatementOfIncomeOrComprehensiveIncomeExtensibleEnumerationNotDisclosedFlag" abstract="false" name="IntangibleAssetStatementOfIncomeOrComprehensiveIncomeExtensibleEnumerationNotDisclosedFlag" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ImpairmentIntangibleAssetStatementOfIncomeOrComprehensiveIncomeExtensibleEnumerationNotDisclosedFlag" abstract="false" name="ImpairmentIntangibleAssetStatementOfIncomeOrComprehensiveIncomeExtensibleEnumerationNotDisclosedFlag" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_NoncurrentDeferredTaxAssetsAndOtherNoncurrentTaxAssetsMember" abstract="true" name="NoncurrentDeferredTaxAssetsAndOtherNoncurrentTaxAssetsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherTaxesPayableMember" abstract="true" name="OtherTaxesPayableMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_UnrecognizedTaxBenefitsExcludingInterest" abstract="false" name="UnrecognizedTaxBenefitsExcludingInterest" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsAssociatedWithUnrecognizedTaxBenefits" abstract="false" name="DeferredTaxAssetsAssociatedWithUnrecognizedTaxBenefits" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_UnrecognizedTaxBenefitsInterestonIncomeTaxesAccruedIncreaseDecreaseInAccrual" abstract="false" name="UnrecognizedTaxBenefitsInterestonIncomeTaxesAccruedIncreaseDecreaseInAccrual" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationForeignBranchIncomeAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationForeignBranchIncomeAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributionsPermanentDifferencesAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributionsPermanentDifferencesAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationTaxCreditsGlobalIntangibleLowTaxedIncomeAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationTaxCreditsGlobalIntangibleLowTaxedIncomeAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationSubpartFIncomeAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationSubpartFIncomeAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationLicenseAgreementsAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationLicenseAgreementsAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationNondeductibleExpenseInterestAmount" abstract="false" name="EffectiveIncomeTaxRateReconciliationNondeductibleExpenseInterestAmount" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationForeignBranchIncomePercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationForeignBranchIncomePercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributionsPermanentDifferencesPercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributionsPermanentDifferencesPercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationTaxCreditsGlobalIntangibleLowTaxedIncomePercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationTaxCreditsGlobalIntangibleLowTaxedIncomePercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationSubpartFIncomePercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationSubpartFIncomePercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationLicenseAgreementsPercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationLicenseAgreementsPercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationNondeductibleExpenseInterestPercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationNondeductibleExpenseInterestPercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_EffectiveIncomeTaxRateReconciliationTaxTransitionLiabilityPercent" abstract="false" name="EffectiveIncomeTaxRateReconciliationTaxTransitionLiabilityPercent" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsAccruedRoyalties" abstract="false" name="DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsAccruedRoyalties" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsTaxDeferredExpenseReservesandAccrualsLegalandProductLiabilityReserves" abstract="false" name="DeferredTaxAssetsTaxDeferredExpenseReservesandAccrualsLegalandProductLiabilityReserves" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsOperatingLossCarryforwardsAndTaxCreditCarryforwards" abstract="false" name="DeferredTaxAssetsOperatingLossCarryforwardsAndTaxCreditCarryforwards" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsStateandLocalTaxesAdjustments" abstract="false" name="DeferredTaxAssetsStateandLocalTaxesAdjustments" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxLiabilitiesTaxDeferredExpenseCompensationandBenefitsEmployeeBenefits" abstract="false" name="DeferredTaxLiabilitiesTaxDeferredExpenseCompensationandBenefitsEmployeeBenefits" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_NoncurrentDeferredTaxLiabilitiesMember" abstract="true" name="NoncurrentDeferredTaxLiabilitiesMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsAssociatedWithUnrecognizedTaxBenefitsOperatingLossCarryforwardAndCreditCarryforward" abstract="false" name="DeferredTaxAssetsAssociatedWithUnrecognizedTaxBenefitsOperatingLossCarryforwardAndCreditCarryforward" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DeferredTaxAssetsIndefiniteLivedAndDefiniteLived" abstract="false" name="DeferredTaxAssetsIndefiniteLivedAndDefiniteLived" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_UnrecognizedTaxBenefitsIncreaseDecreaseResultingFromAcquisition" abstract="false" name="UnrecognizedTaxBenefitsIncreaseDecreaseResultingFromAcquisition" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_UnrecognizedTaxBenefitsIncreaseDecreaseResultingfromForeignCurrencyTranslation" abstract="false" name="UnrecognizedTaxBenefitsIncreaseDecreaseResultingfromForeignCurrencyTranslation" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_UnrecognizedTaxBenefitsPeriodIncreaseDecreaseOther" abstract="false" name="UnrecognizedTaxBenefitsPeriodIncreaseDecreaseOther" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_IncomeTaxesPayableMember" abstract="true" name="IncomeTaxesPayableMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CurrentTaxAssetsMember" abstract="true" name="CurrentTaxAssetsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanAmountsRecognizedinOtherComprehensiveIncomeLossNetPriorServiceCostCreditAndOtherTax" abstract="false" name="DefinedBenefitPlanAmountsRecognizedinOtherComprehensiveIncomeLossNetPriorServiceCostCreditAndOtherTax" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossCurtailmentAdjustmentFromAOCIPensionAndOtherPostretirementBenefitPlansForNetPriorServiceCostCreditTax" abstract="false" name="OtherComprehensiveIncomeLossCurtailmentAdjustmentFromAOCIPensionAndOtherPostretirementBenefitPlansForNetPriorServiceCostCreditTax" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LongtermInvestmentsMember" abstract="true" name="LongtermInvestmentsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ShorttermInvestmentsExcludingHeldToMaturitySecurities" abstract="false" name="ShorttermInvestmentsExcludingHeldToMaturitySecurities" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LongtermInvestmentsExcludingHeldToMaturitySecuritiesAndPrivateEquityInvestments" abstract="false" name="LongtermInvestmentsExcludingHeldToMaturitySecuritiesAndPrivateEquityInvestments" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherAssetsNoncurrentFairValueDisclosure" abstract="false" name="OtherAssetsNoncurrentFairValueDisclosure" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LiabilitiesCurrentFairValueDisclosure" abstract="false" name="LiabilitiesCurrentFairValueDisclosure" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LiabilitiesNoncurrentFairValueDisclosure" abstract="false" name="LiabilitiesNoncurrentFairValueDisclosure" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquitySecuritiesFVNIRestrictedNoncurrent" abstract="false" name="EquitySecuritiesFVNIRestrictedNoncurrent" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_FairValueMeasurementWithUnobservableInputsReconciliationRecurringBasisLiabilityChangeInEstimatedFairValue" abstract="false" name="FairValueMeasurementWithUnobservableInputsReconciliationRecurringBasisLiabilityChangeInEstimatedFairValue" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_PrivateEquityInvestments" abstract="false" name="PrivateEquityInvestments" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ScheduleOfAvailableForSaleSecuritiesAndHeldToMaturitySecuritiesTable" abstract="true" name="ScheduleOfAvailableForSaleSecuritiesAndHeldToMaturitySecuritiesTable" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:hypercubeItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ScheduleOfAvailableForSaleSecuritiesAndHeldToMaturitySecuritiesLineItems" abstract="true" name="ScheduleOfAvailableForSaleSecuritiesAndHeldToMaturitySecuritiesLineItems" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_AvailableforsaleSecuritiesDebtMaturitiesAfterYearFiveFairValue" abstract="false" name="AvailableforsaleSecuritiesDebtMaturitiesAfterYearFiveFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_HeldtomaturitySecuritiesDebtMaturitiesAfterYearFiveFairValue" abstract="false" name="HeldtomaturitySecuritiesDebtMaturitiesAfterYearFiveFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesAmortizedCostBasis" abstract="false" name="DebtSecuritiesAmortizedCostBasis" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesAccumulatedGrossUnrealizedGain" abstract="false" name="DebtSecuritiesAccumulatedGrossUnrealizedGain" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesAccumulatedGrossUnrealizedLoss" abstract="false" name="DebtSecuritiesAccumulatedGrossUnrealizedLoss" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesMaturitiesNextTwelveMonthsFairValue" abstract="false" name="DebtSecuritiesMaturitiesNextTwelveMonthsFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesMaturitiesYearTwoThroughFiveFairValue" abstract="false" name="DebtSecuritiesMaturitiesYearTwoThroughFiveFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DebtSecuritiesMaturitiesAfterYearFiveFairValue" abstract="false" name="DebtSecuritiesMaturitiesAfterYearFiveFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquitySecuritiesWithoutReadilyDeterminableFairValueImpairmentLossAndDownwardPriceAdjustmentCumulativeAmount" abstract="false" name="EquitySecuritiesWithoutReadilyDeterminableFairValueImpairmentLossAndDownwardPriceAdjustmentCumulativeAmount" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_CreditFacilityMaturingOctober2030Member" abstract="true" name="CreditFacilityMaturingOctober2030Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_LongtermDebtCurrentMaturitiesExcludingNetFairValueAdjustmentsRelatedToHedgingAndPurchaseAccounting" abstract="false" name="LongtermDebtCurrentMaturitiesExcludingNetFairValueAdjustmentsRelatedToHedgingAndPurchaseAccounting" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ShorttermDebtGross" abstract="false" name="ShorttermDebtGross" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue2026Member" abstract="true" name="SeniorUnsecuredDebtDue2026Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue2027Member" abstract="true" name="SeniorUnsecuredDebtDue2027Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotesDueNovember2027Member" abstract="true" name="SeniorUnsecuredNotesDueNovember2027Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue2028Member" abstract="true" name="SeniorUnsecuredDebtDue2028Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue2029Member" abstract="true" name="SeniorUnsecuredDebtDue2029Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue2030Member" abstract="true" name="SeniorUnsecuredDebtDue2030Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue20312035Member" abstract="true" name="SeniorUnsecuredDebtDue20312035Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue20362040Member" abstract="true" name="SeniorUnsecuredDebtDue20362040Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue20412045Member" abstract="true" name="SeniorUnsecuredDebtDue20412045Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue20462050Member" abstract="true" name="SeniorUnsecuredDebtDue20462050Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredDebtDue20512065Member" abstract="true" name="SeniorUnsecuredDebtDue20512065Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DebtInstrumentFairValueAdjustmentsHedgingandPurchaseAccounting" abstract="false" name="DebtInstrumentFairValueAdjustmentsHedgingandPurchaseAccounting" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotesDueNovember20272065Member" abstract="true" name="SeniorUnsecuredNotesDueNovember20272065Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes3.875DueNovember2027Member" abstract="true" name="SeniorUnsecuredNotes3.875DueNovember2027Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes4.200DueNovember2030Member" abstract="true" name="SeniorUnsecuredNotes4.200DueNovember2030Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes4.500DueNovember2032Member" abstract="true" name="SeniorUnsecuredNotes4.500DueNovember2032Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes4.875DueNovember2035Member" abstract="true" name="SeniorUnsecuredNotes4.875DueNovember2035Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes5.600DueNovember2055Member" abstract="true" name="SeniorUnsecuredNotes5.600DueNovember2055Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes5.700DueNovember2065Member" abstract="true" name="SeniorUnsecuredNotes5.700DueNovember2065Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotesDueMay20292045Member" abstract="true" name="SeniorUnsecuredNotesDueMay20292045Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes2.875DueMay2029Member" abstract="true" name="SeniorUnsecuredNotes2.875DueMay2029Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes3.250DueMay2032Member" abstract="true" name="SeniorUnsecuredNotes3.250DueMay2032Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes3.875DueMay2037Member" abstract="true" name="SeniorUnsecuredNotes3.875DueMay2037Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SeniorUnsecuredNotes4.250DueMay2045Member" abstract="true" name="SeniorUnsecuredNotes4.250DueMay2045Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_HedgedItemAxis" abstract="true" name="HedgedItemAxis" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrldt:dimensionItem" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_HedgedItemDomain" abstract="true" name="HedgedItemDomain" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DerivativeAssetStatementOfFinancialPositionExtensibleEnumerationNotDisclosedFlag" abstract="false" name="DerivativeAssetStatementOfFinancialPositionExtensibleEnumerationNotDisclosedFlag" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:booleanItemType"/>
+  <xs:element id="pfe_DerivativeLiabilityStatementOfFinancialPositionExtensibleEnumerationNotDisclosedFlag" abstract="false" name="DerivativeLiabilityStatementOfFinancialPositionExtensibleEnumerationNotDisclosedFlag" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:booleanItemType"/>
+  <xs:element id="pfe_ForeignCurrencyDebtMember" abstract="true" name="ForeignCurrencyDebtMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossNonDerivativeNetInvestmentHedgeGainLossbeforeReclassificationandTax" abstract="false" name="OtherComprehensiveIncomeLossNonDerivativeNetInvestmentHedgeGainLossbeforeReclassificationandTax" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossNonDerivativesAndDerivativesGainLossbeforeReclassificationandTax" abstract="false" name="OtherComprehensiveIncomeLossNonDerivativesAndDerivativesGainLossbeforeReclassificationandTax" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossNonDerivativeNetInvestmentHedgeGainLossReclassificationBeforeTax" abstract="false" name="OtherComprehensiveIncomeLossNonDerivativeNetInvestmentHedgeGainLossReclassificationBeforeTax" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_OtherComprehensiveIncomeLossNonDerivativesAndDerivativesGainLossReclassificationBeforeTax" abstract="false" name="OtherComprehensiveIncomeLossNonDerivativesAndDerivativesGainLossReclassificationBeforeTax" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DerivativeNetReceivablePositionAggregateFairValue" abstract="false" name="DerivativeNetReceivablePositionAggregateFairValue" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ComirnatyMember" abstract="true" name="ComirnatyMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DevelopedMarketsMember" abstract="true" name="DevelopedMarketsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InternationalEmergingMarketsMember" abstract="true" name="InternationalEmergingMarketsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_LicensingAgreementsAndOtherMember" abstract="true" name="LicensingAgreementsAndOtherMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TalazoparibTalzennaMember" abstract="true" name="TalazoparibTalzennaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PadcevMember" abstract="true" name="PadcevMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanAssumptionsUsedCalculatingInterestCostDiscountRate" abstract="false" name="DefinedBenefitPlanAssumptionsUsedCalculatingInterestCostDiscountRate" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanAssumptionsUsedCalculatingServiceCostDiscountRate" abstract="false" name="DefinedBenefitPlanAssumptionsUsedCalculatingServiceCostDiscountRate" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanBusinessCombinationsAcquisitionsDivestituresAndOtherBenefitObligation" abstract="false" name="DefinedBenefitPlanBusinessCombinationsAcquisitionsDivestituresAndOtherBenefitObligation" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanBenefitObligationIncreaseDecreaseForCurtailmentsAndSpecialTerminationBenefits" abstract="false" name="DefinedBenefitPlanBenefitObligationIncreaseDecreaseForCurtailmentsAndSpecialTerminationBenefits" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanPlanAssetsContributionsByEmployerNetOfReimbursements" abstract="false" name="DefinedBenefitPlanPlanAssetsContributionsByEmployerNetOfReimbursements" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanBusinessCombinationsAcquisitionsandDivestituresPlanAssets" abstract="false" name="DefinedBenefitPlanBusinessCombinationsAcquisitionsandDivestituresPlanAssets" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanEquitySecuritiesGlobalEquitySecuritiesMember" abstract="true" name="DefinedBenefitPlanEquitySecuritiesGlobalEquitySecuritiesMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanEquitySecuritiesEquityCommingledFundsMember" abstract="true" name="DefinedBenefitPlanEquitySecuritiesEquityCommingledFundsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_DefinedBenefitPlanOtherInvestmentsMember" abstract="true" name="DefinedBenefitPlanOtherInvestmentsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InsuranceContractsMember" abstract="true" name="InsuranceContractsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherCommingledFundsMember" abstract="true" name="OtherCommingledFundsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PortfolioPerformanceSharesMember" abstract="true" name="PortfolioPerformanceSharesMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TotalShareholderReturnUnitsTSRUsMember" abstract="true" name="TotalShareholderReturnUnitsTSRUsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_A2019StockPlanMember" abstract="true" name="A2019StockPlanMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardSharesCountedTowardMaximumNumberofAwardsGrantedPerEmployee" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardSharesCountedTowardMaximumNumberofAwardsGrantedPerEmployee" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_CertainTSRUsGrantedIn2022And2023Member" abstract="true" name="CertainTSRUsGrantedIn2022And2023Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PSAsGrantedIn2022And2023Member" abstract="true" name="PSAsGrantedIn2022And2023Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TotalShareholderReturnUnitsVestingPeriodOneMember" abstract="true" name="TotalShareholderReturnUnitsVestingPeriodOneMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TotalShareholderReturnUnitsVestingPeriodTwoMember" abstract="true" name="TotalShareholderReturnUnitsVestingPeriodTwoMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardPlanModificationValueConversionTradingDayAverage" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardPlanModificationValueConversionTradingDayAverage" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardAwardSettlementPeriod" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardAwardSettlementPeriod" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsNumberofSharesEarnedPercentageofInitialAward" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsNumberofSharesEarnedPercentageofInitialAward" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:percentItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardNumberofMeasuresUsedtoDetermineSharePayout" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardNumberofMeasuresUsedtoDetermineSharePayout" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardSharePayoutMeasuresAdjustedNetIncomeNumberofPeriods" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardSharePayoutMeasuresAdjustedNetIncomeNumberofPeriods" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsUnitsConvertedIntrinsicValue" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsUnitsConvertedIntrinsicValue" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsReinvestedDividendsInPeriod" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsReinvestedDividendsInPeriod" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsReinvestedDividendsinPeriodWeightedAverageGrantDateFairValue" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsReinvestedDividendsinPeriodWeightedAverageGrantDateFairValue" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsOutstandingWeightedAverageGrantPriceRollForward" abstract="true" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsOutstandingWeightedAverageGrantPriceRollForward" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsNonvestedWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsNonvestedWeightedAverageGrantPrice" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsGrantsinPeriodWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsGrantsinPeriodWeightedAverageGrantPrice" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedinPeriodWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedinPeriodWeightedAverageGrantPrice" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsForfeitedinPeriodWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementsbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsForfeitedinPeriodWeightedAverageGrantPrice" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsWeightedAverageIntrinsicValueRollForward" abstract="true" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsWeightedAverageIntrinsicValueRollForward" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:stringItemType"/>
+  <xs:element id="pfe_ProfitUnitsMember" abstract="true" name="ProfitUnitsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedShares" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedShares" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestNumber" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestNumber" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsExercisedAndConvertedNumber" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsExercisedAndConvertedNumber" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsOutstandingWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsOutstandingWeightedAverageGrantPrice" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherThanOptionsVestedWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherThanOptionsVestedWeightedAverageGrantPrice" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestWeightedAverageGrantPrice" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedWeightedAverageRemainingContractualTerms" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsVestedWeightedAverageRemainingContractualTerms" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestWeightedAverageRemainingContractualTerm" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExpectedtoVestWeightedAverageRemainingContractualTerm" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsExercisedAndConvertedWeightedAverageRemainingContractualTerm" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsExercisedAndConvertedWeightedAverageRemainingContractualTerm" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsAggregateIntrinsicValueExpectedtoVest" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsAggregateIntrinsicValueExpectedtoVest" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsAggregateIntrinsicValueExercisedAndConverted" abstract="false" name="ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsAggregateIntrinsicValueExercisedAndConverted" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsSettledShares" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsSettledShares" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentOtherThanOptionsSettledWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentOtherThanOptionsSettledWeightedAverageGrantPrice" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExercisesWeightedAverageGrantPrice" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardEquityInstrumentsOtherthanOptionsExercisesWeightedAverageGrantPrice" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:perShareItemType"/>
+  <xs:element id="pfe_SharebasedCompensationArrangementbySharebasedPaymentAwardNonOptionEquityInstrumentsGrantedUponConversion" abstract="false" name="SharebasedCompensationArrangementbySharebasedPaymentAwardNonOptionEquityInstrumentsGrantedUponConversion" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:sharesItemType"/>
+  <xs:element id="pfe_IncomeLossFromContinuingOperationsAvailableToCommonStockholdersBasic" abstract="false" name="IncomeLossFromContinuingOperationsAvailableToCommonStockholdersBasic" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_IncomeLossFromContinuingOperationsAvailableToCommonStockholdersdiluted" abstract="false" name="IncomeLossFromContinuingOperationsAvailableToCommonStockholdersdiluted" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LesseeOperatingLeaseOptionToExtendTerm" abstract="false" name="LesseeOperatingLeaseOptionToExtendTerm" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:durationItemType"/>
+  <xs:element id="pfe_AbrysvoMember" abstract="true" name="AbrysvoMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ModernaTXUSPatentInfringementCaseMember" abstract="true" name="ModernaTXUSPatentInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ModernaTXEuropeanPatentInfringementCaseMember" abstract="true" name="ModernaTXEuropeanPatentInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ArbutusAndGenevantUSPatentInfringementCaseMember" abstract="true" name="ArbutusAndGenevantUSPatentInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCUSPatentInfringementCaseMember" abstract="true" name="GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCUSPatentInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCIrelandInfringementCaseMember" abstract="true" name="GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCIrelandInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCUnifiedPatentCourtPatentInfringementCaseMember" abstract="true" name="GlaxoSmithKlineBiologicsSAAndGlaxoSmithKlineLLCUnifiedPatentCourtPatentInfringementCaseMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PfizerBioNTechAndBioNTechManufacturingGmbHVersusCureVacJudgmentOfNonInfringementMember" abstract="true" name="PfizerBioNTechAndBioNTechManufacturingGmbHVersusCureVacJudgmentOfNonInfringementMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SiteContingencyRegulatoryProceedingsDisclosureThreshold" abstract="false" name="SiteContingencyRegulatoryProceedingsDisclosureThreshold" nillable="true" xbrli:periodType="instant" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_LossContingencyPatentsRuledInvalid" abstract="false" name="LossContingencyPatentsRuledInvalid" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_LossContingencyPatentsUnderReview" abstract="false" name="LossContingencyPatentsUnderReview" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_LossContingencyPatentsAllegedlyInfringedAndSubsequentlyRevokedNumber" abstract="false" name="LossContingencyPatentsAllegedlyInfringedAndSubsequentlyRevokedNumber" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_LossContingencyPatentsRuledInvalidAndSubsequentlyRevokedNumber" abstract="false" name="LossContingencyPatentsRuledInvalidAndSubsequentlyRevokedNumber" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_GreenstoneAntitrustLitigationMember" abstract="true" name="GreenstoneAntitrustLitigationMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NumberOfComplaints" abstract="false" name="NumberOfComplaints" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_NonUnitedStatesMember" abstract="true" name="NonUnitedStatesMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ThreeLargestUSWholesaleCustomersMember" abstract="true" name="ThreeLargestUSWholesaleCustomersMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_GovernmentAndGovernmentSponsoredMember" abstract="true" name="GovernmentAndGovernmentSponsoredMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PaxlovidEUALabeledMember" abstract="true" name="PaxlovidEUALabeledMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PaxlovidNDALabeledUSStrategicNationalStockpileMember" abstract="true" name="PaxlovidNDALabeledUSStrategicNationalStockpileMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PaxlovidMember" abstract="true" name="PaxlovidMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PaxlovidAndComirnatyMember" abstract="true" name="PaxlovidAndComirnatyMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ConcentrationRiskRevenues500000000orMoreNumberofCountries" abstract="false" name="ConcentrationRiskRevenues500000000orMoreNumberofCountries" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_ContractWithCustomerRefundRecordedDuringPeriod" abstract="false" name="ContractWithCustomerRefundRecordedDuringPeriod" nillable="true" xbrli:periodType="instant" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_GovernmentEmergencyUseAuthorizationInventoryToBeReturnedToCompanyNumberOfTreatmentCourses" abstract="false" name="GovernmentEmergencyUseAuthorizationInventoryToBeReturnedToCompanyNumberOfTreatmentCourses" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_ContractWithCustomerFavorableAdjustmentForGovernmentEmergencyUseAuthorizationInventoryReturnedToTheCompanyDuringThePeriod" abstract="false" name="ContractWithCustomerFavorableAdjustmentForGovernmentEmergencyUseAuthorizationInventoryReturnedToTheCompanyDuringThePeriod" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_GovernmentEmergencyUseAuthorizationInventoryReturnedToTheCompanyDuringThePeriodNumberOfTreatmentCourses" abstract="false" name="GovernmentEmergencyUseAuthorizationInventoryReturnedToTheCompanyDuringThePeriodNumberOfTreatmentCourses" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_SupplyCommitmentRemainingMinimumAmountCommittedNumberOfTreatmentCourses" abstract="false" name="SupplyCommitmentRemainingMinimumAmountCommittedNumberOfTreatmentCourses" nillable="true" xbrli:periodType="instant" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_ReconcilingItemsAmortizationOfIntangibleAssetsMember" abstract="true" name="ReconcilingItemsAmortizationOfIntangibleAssetsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ReconcilingItemsAcquisitionRelatedCostsMember" abstract="true" name="ReconcilingItemsAcquisitionRelatedCostsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ReconcilingItemsOtherMember" abstract="true" name="ReconcilingItemsOtherMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_RestructuringChargesCreditsImplementationCostsAndAdditionalDepreciationAssetRestructuring" abstract="false" name="RestructuringChargesCreditsImplementationCostsAndAdditionalDepreciationAssetRestructuring" nillable="true" xbrli:periodType="duration" xbrli:balance="debit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_NumberOfRealEstatePropertiesHeldForSale" abstract="false" name="NumberOfRealEstatePropertiesHeldForSale" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="xbrli:integerItemType"/>
+  <xs:element id="pfe_GainLossOnDispositionOfStockInSubsidiaryOrEquityMethodInvesteeNet" abstract="false" name="GainLossOnDispositionOfStockInSubsidiaryOrEquityMethodInvesteeNet" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_EquityMethodInvesteeAdjustedIncome" abstract="false" name="EquityMethodInvesteeAdjustedIncome" nillable="true" xbrli:periodType="duration" xbrli:balance="credit" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType"/>
+  <xs:element id="pfe_ExcludingComirnatyAndPaxlovidMember" abstract="true" name="ExcludingComirnatyAndPaxlovidMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PrimaryCareMember" abstract="true" name="PrimaryCareMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InternationalDevelopedMarketsMember" abstract="true" name="InternationalDevelopedMarketsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_McKessonInc.Member" abstract="true" name="McKessonInc.Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CencoraInc.Member" abstract="true" name="CencoraInc.Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CardinalHealthInc.Member" abstract="true" name="CardinalHealthInc.Member" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SpecialtyCareMember" abstract="true" name="SpecialtyCareMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OncologyMember" abstract="true" name="OncologyMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EliquisMember" abstract="true" name="EliquisMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PrevnarPrevenarFamilyMember" abstract="true" name="PrevnarPrevenarFamilyMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_NurtecODTVyduraMember" abstract="true" name="NurtecODTVyduraMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_FSMEIMMUNTicoVacMember" abstract="true" name="FSMEIMMUNTicoVacMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherPrimaryCareProductsMember" abstract="true" name="OtherPrimaryCareProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_VyndaqelMember" abstract="true" name="VyndaqelMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_XeljanzMember" abstract="true" name="XeljanzMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_SulperazonMember" abstract="true" name="SulperazonMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InflectraRemsimaMember" abstract="true" name="InflectraRemsimaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ZaviceftaMember" abstract="true" name="ZaviceftaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_EnbrelMember" abstract="true" name="EnbrelMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_GenotropinMember" abstract="true" name="GenotropinMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OctagamMember" abstract="true" name="OctagamMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ZithromaxZmaxMember" abstract="true" name="ZithromaxZmaxMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CresembaMember" abstract="true" name="CresembaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_CibinqoMember" abstract="true" name="CibinqoMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherHospitalMember" abstract="true" name="OtherHospitalMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherSpecialtyCareMember" abstract="true" name="OtherSpecialtyCareMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_IbranceMember" abstract="true" name="IbranceMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_XtandiMember" abstract="true" name="XtandiMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OncologyBiosimilarsMember" abstract="true" name="OncologyBiosimilarsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_LorbrenaMember" abstract="true" name="LorbrenaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InlytaMember" abstract="true" name="InlytaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AdcetrisMember" abstract="true" name="AdcetrisMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BraftoviMektoviMember" abstract="true" name="BraftoviMektoviMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_BosulifMember" abstract="true" name="BosulifMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_AromasinMember" abstract="true" name="AromasinMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OrgovyxMember" abstract="true" name="OrgovyxMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_ElrexfioMember" abstract="true" name="ElrexfioMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TalzennaMember" abstract="true" name="TalzennaMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TivdakMember" abstract="true" name="TivdakMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_OtherOncologyProductsMember" abstract="true" name="OtherOncologyProductsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PfizerCentreOneMember" abstract="true" name="PfizerCentreOneMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_PfizerIgniteMember" abstract="true" name="PfizerIgniteMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_TotalAllianceBiopharmaceuticalsMember" abstract="true" name="TotalAllianceBiopharmaceuticalsMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_U.S.CommercialDivisionMember" abstract="true" name="U.S.CommercialDivisionMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+  <xs:element id="pfe_InternationalCommercialDivisionMember" abstract="true" name="InternationalCommercialDivisionMember" nillable="true" xbrli:periodType="duration" substitutionGroup="xbrli:item" type="dtr-types:domainItemType"/>
+</xs:schema>
