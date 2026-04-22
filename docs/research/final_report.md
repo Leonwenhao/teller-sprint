@@ -4,6 +4,8 @@
 **Leon Liu (柳文浩), Founder**
 **April 7, 2026**
 
+> **2026-04-22 reconciliation note.** This report is anchored on the Apr 6 original submission run: **174/246 correct (70.7%), score 192.046, #1 on the leaderboard at submission time, 171 s average latency.** On Apr 8, Sentient re-ran the same submission tar file on their infrastructure; the rerun scored **176/246 correct (71.5% — highest accuracy in the competition), score 187.823, #2 on the final leaderboard, ~290 s average latency.** The +2-question delta is Arena-infrastructure variance on the rerun, not a re-scoring or scorer-version change — the submission artifact was identical. Public communications (including Sentient's own Apr 8 announcement, the Teller README, and launch copy) cite the **71.5% rerun number** as the competition's highest-accuracy result. The body of this report preserves the 174 / 70.7% original-run numbers as the primary record for methodological reproducibility; where tables below show 174 / 70.7%, the Apr 8 rerun equivalent is 176 / 71.5%. Cost and score comparisons are drawn from the original run. See `docs/research/journey.md` §Apr 8 for the primary narrative.
+
 ---
 
 ## Abstract

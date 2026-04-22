@@ -6,7 +6,7 @@ This is private beta. You're the first person other than us running it. We want 
 
 ## Install
 
-Requires Python ≥ 3.10 (tested on 3.12 and 3.14).
+Requires Python ≥ 3.10 (tested on 3.12).
 
 ```
 pip install teller-agent
