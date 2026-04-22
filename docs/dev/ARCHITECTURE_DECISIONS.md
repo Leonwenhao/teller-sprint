@@ -23,7 +23,8 @@ This file is the ADR log for the Teller v0.1 sprint. Each entry records a non-tr
 | ADR-008 | Concept-family normalization layer | Reserved — write before day-3 SEC test set if needed | — |
 | ADR-009 | Fast-path for top-line extraction class | Reserved — v0.2 concern | — |
 | ADR-010 | XBRL validator question-intent awareness (segment vs consolidated) | Reserved — v0.2 concern | — |
-| ADR-011 | LLM reasoning-trace persistence for observability | Open question (v0.2 vs launch-blocking) | — |
+| ADR-011 | LLM reasoning-trace persistence for observability | Accepted for v0.1.1 (≤2 weeks post v0.1 tag; re-escalates to v0.1 on first both-attempts-timeout) | 2026-04-21 |
+| ADR-012 | Retry-on-timeout in Agent.ask (single same-model retry) | Accepted | 2026-04-21 |
 
 ---
 
@@ -664,7 +665,9 @@ Captured now (pre-first-gate-run, 2026-04-18) while the reasoning is fresh. See 
 
 ## ADR-011 — LLM reasoning-trace persistence for observability
 
-**Status:** Open question. Whether this lands in v0.1 launch or is deferred to v0.2 depends on what day-3/day-4 evidence we accumulate about post-hoc debuggability needs. Do not settle the deferral without revisiting.
+**Status:** Accepted for v0.1.1. Lands within the first post-launch minor, **no later than two weeks after the v0.1 tag**. Re-escalates to v0.1 launch-blocker (hotfix before second private-beta recipient) if any post-launch run produces a both-attempts-timeout — that is the customer-visible opacity event, a different failure class than a silently-recovered retry.
+**Date accepted-for-v0.1.1:** 2026-04-21
+**Authors:** Claude Code (framing), Leon (decision)
 
 The Agent runs goose in an ephemeral tempdir with a per-invocation uuid session name. Goose's internal tool-calling transcript (model messages, Python blocks executed, tool outputs) is not persisted anywhere the Agent or a downstream user can retrieve after the subprocess exits. The goose sessions database at `~/.local/share/goose/sessions/sessions.db` exists but does not contain `teller-*` prefixed sessions — the headless-session path appears to bypass the main sessions table.
 
@@ -679,6 +682,129 @@ The Agent runs goose in an ephemeral tempdir with a per-invocation uuid session 
 
 **v0.2 shape (if deferred):** structured trace with per-tool-call timing, token counts, and model message chain. Requires deeper goose integration than v0.1 can afford.
 
-**Decision criteria:** if day-4 polish surfaces a third reasoning-opacity scar, move to v0.1. If day-4 closes cleanly on the existing two timeouts and the day-3/tier-3 flakes, v0.2 is acceptable. Defer the decision to end-of-day-4 with evidence, not to end-of-day-3 on intuition.
+**Decision criteria (resolved 2026-04-21):** The day-4 regression (2 retries / 45 inferences = 4.4 %) tripped the ADR-012 pre-committed 2 % threshold. Both criteria for escalation — the cold-start qualitative "third reasoning-opacity scar" and the ADR-012 quantitative threshold — fired. They disagreed only on shape: cold-start implied v0.1 launch-blocker, ADR-012 implied v0.1.1 launch-blocker. Resolution in favor of v0.1.1 because (a) today's retries *succeeded*, so customers see correct-answer-at-elevated-latency rather than mystery failures; (b) the load-bearing opacity event is a both-attempts-timeout, which has zero observed incidence to date; (c) delaying v0.1 to build trace persistence delays first-contact feedback that would tell us *which* trace shape customers actually need.
 
-Captured 2026-04-18; framing updated 2026-04-20 (day-3 close) to mark this as an open question rather than a settled deferral.
+**Commitment language (binding, not aspirational).** ADR-011 v0.1.1 lands within the first post-launch minor, no later than two weeks after the v0.1 tag. This is a calendar bound, not a scope bound: if trace persistence is not ready at day-14 we ship v0.1.1 with a smaller trace shape and pick up the remainder in v0.1.2, we do not slip the calendar. The commitment exists to prevent v0.1.1 from becoming "someday."
+
+**Re-escalation trigger.** If any post-launch run — private-beta or public — produces a both-attempts-timeout (`abstention_reason="timeout_600s"` post-ADR-012 meaning both retries exhausted), ADR-011 re-escalates to v0.1 launch-blocker and a hotfix must land before the second private-beta recipient receives Teller. Rationale: a both-attempts-timeout is the customer-visible opacity event — a failure the customer cannot reason about and we cannot debug. Silently-recovered retries are not that event; today's 4.4 % retry rate is a latency tax on the customer, not an opacity hit on the customer. The re-escalation trigger cleanly separates the two.
+
+Captured 2026-04-18; framing updated 2026-04-20 (day-3 close); resolved 2026-04-21 (day-4 close, post-regression).
+
+---
+
+## ADR-012 — Retry-on-timeout in Agent.ask (single same-model retry)
+
+**Status:** Accepted
+**Date:** 2026-04-21
+**Authors:** Claude Code (proposal, implementation), Leon (approval of the four design calls + three review edits)
+
+### Context
+
+Day-3 aggregate data: **three 600 s timeouts across 42 inferences** (~7 % rate). SEC0009 (AMZN cash, tier-1), SEC0014 (PFE revenue, tier-2), UID0014 (treasury swing-5). Each surfaces today as `Result(abstained=True, abstention_reason="timeout_600s", answer=None, latency_ms≈600_000)` via the `subprocess.TimeoutExpired` branch of `Agent.ask`.
+
+Each of the three was spot-checked in isolation. SEC0009 passed in 163 s; SEC0014 passed in 449 s (near the 600 s cap); UID0014 was not re-checked at day-3 close but its behavior at baseline had been stable. Signature: MiniMax M2.5 stalls during text-extraction, produces no incremental output, hits the Agent-layer 600 s wall. Not reproducible on an immediate second attempt. This is a tail-latency flake, not a structural failure of the model, prompt, or harness.
+
+A 7 % timeout rate is a v0.1 quality floor the launch cannot ship with: the first private-beta recipient running ten questions has a ~52 % chance of hitting at least one. Day-3 retrospective "Load-bearing learnings" #5 named this as launch-blocker category. This ADR closes the decision.
+
+ADR-011 (reasoning-trace persistence) is adjacent but separate. Retry reduces how often customers *encounter* the opacity scar by resolving the flaky third of timeouts silently; it does not *solve* the scar (when both attempts time out, the opacity is identical). ADR-011 severity still decides on its own evidence at day-4 midpoint.
+
+### Decision
+
+Add a single same-model retry inside `Agent.ask` when, and only when, the first attempt raises `subprocess.TimeoutExpired`. No public API change; no config surface; no exponential backoff; no model fallback.
+
+Four design calls, each with its rationale and the rejected alternative.
+
+**1. Trigger scope — `subprocess.TimeoutExpired` only.**
+
+Retry fires iff the first `goose run` subprocess exceeded `TIMEOUT_SECONDS = 600`. Explicitly excluded:
+
+- `no_answer_file_written`. This is the ADR-007 class of failure: zero-second silent exits that indicated a structural bug (newlines in `--params`). Retrying here would mask any regression of the same failure mode. The day-1 diagnosis discipline — "if goose exits without writing an answer, make the signal loud" — is preserved. If goose produces a new silent-exit failure mode post-launch, we want the first private-beta report to surface it, not for it to self-heal on retry and appear as a latency blip.
+- `empty_answer_file`. Iron-rules violation; indicates the model wrote an empty file. Retrying masks prompt-layer degradation.
+- `ABSTAIN:<reason>` sentinel lifts. Deliberate LLM abstentions (segment-intent, etc. — ADR-010 behavioral layer). Retrying would contradict the whole point of behavioral abstention: the LLM declined for a reason; honor it.
+- XBRL disagreement (`XBRLValidation.agreed == False`). Working-as-designed moat output. Retrying on disagreement is the "false agreement is worse than no moat" failure class from the day-3 retrospective — actively harmful if retry flips the answer to agreement via stochastic variance.
+
+All three day-3 timeouts and the treasury timeout came through the `TimeoutExpired` branch. The narrow trigger is empirically grounded.
+
+**2. Retry count — exactly one (two total attempts).**
+
+Day-3 spot-check evidence: 2/2 spot-checked questions (SEC0009, SEC0014) passed on the second attempt. Under an i.i.d. assumption — which the 2/2 spot-check is consistent with but does not prove — expected residual drops to ~0.5 %, with ~6.5 pp reduction per retry. Post-launch retry-event telemetry will test this. A second retry would buy ~0.04 pp additional reduction for another 600 s of worst-case wall-clock, tripling the per-question ceiling from 600 s to 1800 s. Not worth the cost.
+
+Exponential backoff rejected: the failure shape is a stall inside a fixed budget, not a rate-limit signal from a shared resource. There is nothing to back off from. A 5 s or 30 s delay between attempts adds no value.
+
+**3. Model on retry — same model (MiniMax M2.5).**
+
+All behavioral guarantees the v0.1 moat relies on — tier-3 segment-intent abstention, `ABSTAIN:<reason>` sentinel classification, iron-rules adherence, the `_normalize_numeric` scale-match band — are calibrated against MiniMax M2.5 by the 25-question SEC test set and the 20-question treasury regression. A Claude or GPT-4 fallback on retry would:
+
+- Shift the false-agreement band on tier-3 questions. ADR-010's day-3 closure assumes a specific classifier distribution; a different model may not obey the `CLASSIFY BEFORE RETRIEVING` rule with the same precision.
+- Introduce launch-visible inconsistency: the same question, asked twice by the same user, returns a stylistically different answer on the second call. Explaining "you got different answers because we transparently failed over" is harder than explaining a retry.
+- Require a second model-specific test-set pass, which is not day-4 scope.
+
+v0.2 may revisit once we have telemetry on what actually fails. v0.1 ships with MiniMax on both attempts.
+
+**4. User visibility — one stderr line per retry, no public API change.**
+
+Before the second attempt executes, `Agent.ask` writes exactly:
+
+```
+teller: model timed out after 600s, retrying (attempt 2/2)...
+```
+
+to `sys.stderr`. Design notes on the wording (per Leon's day-4 refinement):
+
+- "model" not "goose" — the launch audience is a sell-side associate who has not read the README's harness discussion. They know Teller wraps a model; they do not need to know goose is the harness binary. README-level vocabulary stays consistent.
+- "600s" — concrete and matches `TIMEOUT_SECONDS`. If that constant changes, the string should be regenerated from it (f-string using `self.TIMEOUT_SECONDS`).
+- "attempt 2/2" — tells the user this is the last attempt. Sets expectations.
+- No retry log for the first attempt. Only one line per retry event. Avoids noise on the happy path.
+- On retry success: no additional line. The Result is returned normally; the caller sees a non-timed-out answer with cumulative `latency_ms`.
+- On retry failure: no additional line. The caller sees the same `abstention_reason="timeout_600s"` they would have seen pre-ADR — with latency ~1200 s reflecting both attempts.
+
+No public API additions: no `retry_attempted` field on `Result`, no `retry_on_timeout=` constructor kwarg on `Agent`. Surface stays stable for v0.1. A class attribute `RETRY_ON_TIMEOUT: bool = True` next to `TIMEOUT_SECONDS` and `SESSION_SETTLE_SECONDS` is introduced for test-time patching and for future disablement without signature churn.
+
+### Semantic shift in `abstention_reason="timeout_600s"` (documented, not renamed)
+
+Pre-ADR-012, the token `timeout_600s` means: *"goose's subprocess exceeded the 600 s Agent-layer cap on the only attempt."* Post-ADR-012, the same token means: *"both attempts — the first and the retry — exceeded the 600 s cap; aggregate wall-clock was approximately 1200 s."* The reason string is identical; the semantics changed.
+
+Options considered:
+
+- **Rename to `timeout_exhausted` or `timeout_1200s`.** Rejected. Day-3 gate fixtures (`tests/fixtures/sec_filings/sec_twenty_five.json`) encode `timeout_600s` in scoring contracts and baseline results. Renaming would require a fixture-data migration that adds risk without adding information. The day-3 test data compared against `timeout_600s` was already wrong-reason-scores-zero, and that remains true post-retry — the taxonomy behavior is preserved.
+- **Keep `timeout_600s` and document the shift here.** Accepted. Future sessions reading the ADR log see the semantic update; data files remain stable.
+
+**Explicit caveat for anyone comparing day-3 timeout-rate evidence to post-launch timeout-rate evidence:** day-3 was single-attempt. Any post-launch `timeout_600s` count is already post-retry. The base rate of single-attempt timeouts can only be inferred from the retry-event stderr log. This is the telemetry gap flagged below.
+
+### Extension policy (no silent expansion of the retry trigger)
+
+ADR-007 explicitly covered `no_answer_file_written` as a *loud-signal* failure class: goose exiting silently before writing an answer is diagnostic of a structural bug, not a flake. This ADR preserves that contract. Any future extension of the retry trigger to include `no_answer_file_written`, `empty_answer_file`, or other classes requires a new ADR explicitly citing (a) empirical evidence that the class is flaky-not-structural, and (b) an explanation of how the ADR-007 diagnostic discipline is preserved or revised. Do not quietly add classes.
+
+### Telemetry gap (flagged, not solved in this ADR)
+
+Retry-rate observability in v0.1 depends entirely on stderr capture by the caller. If the first private-beta recipient runs `teller ask ...` without piping stderr anywhere, the retry-event signal is lost — and with it the leading indicator we would use to decide ADR-011 severity post-beta.
+
+Decision: **instruct the first private-beta recipient in the onboarding note to run with `2>&1 | tee teller.log`**. Cheap, adequate for a single-recipient private beta, keeps v0.1 scope stable. Alternative considered and rejected: mirror the stderr line to `~/.teller/retry.log` (tiny scope creep, more robust, but introduces a new on-disk artifact that needs path-hygiene decisions — not day-4 scope).
+
+If the private beta expands past one recipient, or if we see any difficulty explaining the tee pattern in the onboarding note, reconsider the on-disk mirror via a v0.1.1 ADR or fold it into ADR-011 at that time.
+
+**Pre-committed severity threshold.** If post-launch stderr retry-event rate exceeds 2 % of inferences, treat as third reasoning-opacity scar per day-4 midpoint criterion and escalate ADR-011 to v0.1.1 launch-blocker. Converts the ADR-011 severity call from judgment to a numeric threshold: the retry-event rate is the leading indicator, and the opacity becomes load-bearing once the first-attempt timeout rate holds above a floor we can no longer call "rare tail-latency flake."
+
+### Implementation shape
+
+- Extract the current `subprocess.run(...)` block inside `Agent.ask` into a private helper `_run_goose_once(workspace, recipe_text, instruction_arg, start_time)` that returns either a `subprocess.CompletedProcess` or a `None` sentinel meaning "timed out."
+- `Agent.ask` calls the helper up to twice. On the first-attempt timeout, emit the stderr line, build a fresh tempdir + fresh uuid session name + fresh recipe copy for the retry, and call the helper again. Fresh tempdir is isolation from any goose SQLite state left by the timed-out process (defense-in-depth against a hypothetical resource-leak interaction that is not explicitly evidenced but is cheap to avoid).
+- `latency_ms` is measured from the `start = time.time()` at the top of `Agent.ask`, so cumulative wall-clock is already preserved for free.
+- Class attribute `RETRY_ON_TIMEOUT: bool = True` is introduced. Default True. Patchable at class level for tests that want to assert the single-attempt path. No public kwarg.
+- Test coverage additions in `tests/test_agent_abstention_sentinel.py` (or a new `tests/test_agent_retry.py`): (a) first-attempt timeout, second-attempt success → `Result.answer` populated, latency roughly first-attempt + second-attempt; (b) both attempts timeout → `abstention_reason="timeout_600s"`, latency ≈ 2× cap; (c) first-attempt returns `no_answer_file_written` → no retry, single stderr line not emitted; (d) `ABSTAIN:` sentinel on first attempt → no retry; (e) stderr line text matches spec exactly; (f) `RETRY_ON_TIMEOUT=False` class-patch disables retry.
+
+### Consequences
+
+- Worst-case `Agent.ask` wall-clock doubles on timeout-path: ~1200 s (two 600 s attempts) instead of ~600 s. Happy-path latency is unchanged.
+- Expected cost impact: 7 % additional cost on the ~7 % of questions that time out on the first attempt — roughly +0.5 % aggregate cost. Within sprint budget headroom.
+- Customer-observed timeout rate projected to drop from ~7 % to ~0.5 % (projection assumes independence; see Decision §2 caveat), moving the private-beta hit probability on 10 questions from ~52 % to ~5 %.
+- The ADR-011 opacity scar is not addressed. When both attempts time out, the customer still has no way to inspect why. ADR-011 severity call at day-4 midpoint stands on independent evidence.
+- Day-3 baseline timeout counts (3/42) are the last clean measurement of single-attempt timeout rate. Future measurements are retry-adjusted and cannot be directly compared without the stderr retry-event count.
+- `timeout_600s` reason-code consumers (scoring contract in `sec_twenty_five.json`, the treasury scorer) continue to treat this reason as "wrong; score 0" — semantically unchanged.
+
+### Change Policy
+
+- Changing retry count from 1 to anything else requires a new ADR citing empirical telemetry showing residual flake rate above the v0.1 quality floor.
+- Changing to a cross-model retry requires a new ADR citing SEC and treasury test-set evidence that the fallback model honors the behavioral-abstention contract with at least day-3-equivalent precision.
+- Removing retry-on-timeout entirely (e.g. if telemetry shows no flakes post-launch) requires a new ADR; do not delete silently.
+- Extending the retry trigger beyond `TimeoutExpired` requires a new ADR and must explicitly re-affirm or revise the ADR-007 diagnostic contract.

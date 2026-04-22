@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import uuid
@@ -111,6 +112,13 @@ class Agent:
     # loser exits 0 without starting a session or writing an answer file.
     SESSION_SETTLE_SECONDS = 0.3
 
+    # ADR-012 — single same-model retry on subprocess.TimeoutExpired only.
+    # Class attribute (not public kwarg) so tests can patch to False when
+    # they need to assert single-attempt behavior. Do not extend the retry
+    # trigger beyond TimeoutExpired without a new ADR (see ADR-012 Change
+    # Policy).
+    RETRY_ON_TIMEOUT: bool = True
+
     def __init__(
         self,
         domain: str,
@@ -127,6 +135,11 @@ class Agent:
         Returns a Result with answer, confidence, sources, xbrl_validation,
         and abstention status. If goose writes no answer file, the Result
         is abstained with reason `no_answer_file_written`.
+
+        ADR-012 — on `subprocess.TimeoutExpired` of the first attempt, a
+        single same-model retry fires. `latency_ms` accumulates both
+        attempts. No retry on other failure classes (see ADR-012 trigger
+        scope).
         """
         if shutil.which("goose") is None:
             raise GooseNotFoundError()
@@ -142,7 +155,70 @@ class Agent:
                 f"`instruction` parameter hook."
             )
 
+        # ADR-007 — goose's --params CLI parser treats newlines in the
+        # value as argument terminators. Normalize whitespace once for
+        # both attempts.
+        instruction_arg = " ".join(question.split())
+
         start = time.time()
+        result = self._run_once(question, instruction_arg, recipe_src, start)
+        if result is not None:
+            return result
+
+        # First attempt timed out. ADR-012 — single same-model retry with
+        # fresh tempdir + fresh uuid session. Emit one stderr line before
+        # the retry. `RETRY_ON_TIMEOUT=False` disables retry (test-patch
+        # hook; no public kwarg).
+        if not self.RETRY_ON_TIMEOUT:
+            latency_ms = int((time.time() - start) * 1000)
+            return Result(
+                question=question,
+                answer=None,
+                abstained=True,
+                abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
+                latency_ms=latency_ms,
+            )
+
+        print(
+            f"teller: model timed out after {self.TIMEOUT_SECONDS}s, "
+            f"retrying (attempt 2/2)...",
+            file=sys.stderr,
+            flush=True,
+        )
+
+        result = self._run_once(question, instruction_arg, recipe_src, start)
+        if result is not None:
+            return result
+
+        # Retry also timed out. Reason stays `timeout_<N>s` for data
+        # continuity; semantic shift to "both attempts timed out" is
+        # documented in ADR-012.
+        latency_ms = int((time.time() - start) * 1000)
+        return Result(
+            question=question,
+            answer=None,
+            abstained=True,
+            abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
+            latency_ms=latency_ms,
+        )
+
+    def _run_once(
+        self,
+        question: str,
+        instruction_arg: str,
+        recipe_src: Path,
+        start: float,
+    ) -> Optional[Result]:
+        """Execute one goose invocation.
+
+        Returns a `Result` on any terminal outcome (success, empty answer,
+        abstention sentinel, no answer file written). Returns `None` on
+        `subprocess.TimeoutExpired` to signal the caller that retry is
+        permitted per ADR-012. Non-timeout outcomes never trigger retry.
+
+        `latency_ms` is always measured cumulatively from `start` so the
+        caller sees true wall-clock across attempts.
+        """
         with tempfile.TemporaryDirectory(prefix="teller-run-") as workdir:
             workspace = Path(workdir)
             answer_path = workspace / "answer.txt"
@@ -169,17 +245,8 @@ class Agent:
             # against goose session-name collisions).
             session_name = f"teller-{uuid.uuid4().hex[:10]}"
 
-            # ADR-007 — goose's --params CLI parser treats newlines in the
-            # value as argument terminators: a question containing `\n`
-            # causes goose to exit silently between "Recipe execution
-            # started" and "Headless session started" with no error logged.
-            # Normalize newlines to spaces so the full instruction reaches
-            # the model intact. Semantically lossless for natural-language
-            # questions.
-            instruction_arg = " ".join(question.split())
-
             try:
-                proc = subprocess.run(
+                subprocess.run(
                     [
                         "goose",
                         "run",
@@ -197,17 +264,11 @@ class Agent:
                     cwd=str(workspace),
                 )
             except subprocess.TimeoutExpired:
-                latency_ms = int((time.time() - start) * 1000)
-                # Settle before returning so the next Agent.ask call does not
-                # race against goose's SQLite WAL from the timed-out process.
+                # Settle before returning so the next attempt (or the next
+                # Agent.ask call) does not race against goose's SQLite WAL
+                # from the timed-out process.
                 time.sleep(self.SESSION_SETTLE_SECONDS)
-                return Result(
-                    question=question,
-                    answer=None,
-                    abstained=True,
-                    abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
-                    latency_ms=latency_ms,
-                )
+                return None
 
             # ADR-007 — post-exit settle window.
             time.sleep(self.SESSION_SETTLE_SECONDS)
@@ -252,6 +313,10 @@ class Agent:
                     latency_ms=latency_ms,
                 )
 
+            # ADR-007 contract — goose exited without writing an answer
+            # file. This is diagnostic of a structural bug (not a flake).
+            # ADR-012 explicitly excludes this class from retry: the
+            # signal must stay loud.
             return Result(
                 question=question,
                 answer=None,

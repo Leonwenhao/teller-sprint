@@ -1,0 +1,32 @@
+Teller
+Copyright 2026 Leon Liu / Dolores Research
+
+This product bundles and depends on software released under the Apache
+License, Version 2.0. Per §4(d) of that license, the following notices
+apply:
+
+----------------------------------------------------------------------
+Arelle (arelle-release 2.39.6)
+----------------------------------------------------------------------
+Copyright (c) 2011-present Workiva, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this software except in compliance with the License. You may
+obtain a copy of the License at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Project home:  https://arelle.org/
+License text:  .venv/lib/python*/site-packages/arelle_release-*.dist-info/licenses/LICENSE.md
+
+Teller uses Arelle as a deterministic iXBRL parser to cross-check LLM
+extractions against tagged SEC facts. See docs/dev/ARCHITECTURE_DECISIONS.md
+ADR-002 for the selection rationale.
+
+----------------------------------------------------------------------
+Other dependencies
+----------------------------------------------------------------------
+Teller's direct runtime dependencies jinja2, click, and rich are released
+under BSD-3-Clause and MIT respectively; those licenses do not require a
+NOTICE file. License texts ship with the respective packages under their
+dist-info directories.
