@@ -1,0 +1,24 @@
+=== UID0002 SPOT-CHECK START 2026-04-21T22:12:04Z ===
+/Users/leonliu/Desktop/teller/scripts/regression.py:198: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+Regression set: twenty (1 questions)
+Corpus: tests/fixtures/treasury_bulletins
+Gate: ≥0/1 (65%). Stop below: 60%
+
+[1/1] UID0002 (ALWAYS_PASS, easy)
+    Q: What were the total expenditures of the U.S federal government (in millions of nominal dollars) for the Veterans Administration in FY 1934? ...
+    ✓ PASS  got='507'  expected='507'  (452.5s)
+
+================================================================
+RESULT: 1/1 correct (100.0%)
+Total elapsed: 7.5 min; avg latency per Q: 452.5s
+
+By tier:
+  ALWAYS_PASS    1/1
+  SWING          0/0
+  ALWAYS_FAIL    0/0
+
+Results: results/regression_twenty_20260421T221937Z.json
+
+✓ Gate passed: 100.0% ≥ 65%. Regression complete.
+=== UID0002 SPOT-CHECK EXIT=0 2026-04-21T22:19:37Z ===

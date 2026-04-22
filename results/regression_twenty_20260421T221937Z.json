@@ -1,0 +1,34 @@
+{
+  "set": "twenty",
+  "timestamp": "20260421T221937Z",
+  "passed": 1,
+  "total": 1,
+  "accuracy": 1.0,
+  "gate_threshold": 0.65,
+  "stop_threshold": 0.6,
+  "gate_passed": true,
+  "should_stop": false,
+  "elapsed_minutes": 7.541327234109243,
+  "avg_latency_s": 452.47,
+  "per_tier": {
+    "ALWAYS_PASS": {
+      "passed": 1,
+      "total": 1
+    }
+  },
+  "per_question": [
+    {
+      "uid": "UID0002",
+      "tier": "ALWAYS_PASS",
+      "difficulty": "easy",
+      "correct": true,
+      "reward": 1.0,
+      "answer": "507",
+      "expected": "507",
+      "abstained": false,
+      "abstention_reason": null,
+      "error": null,
+      "latency_s": 452.47
+    }
+  ]
+}
