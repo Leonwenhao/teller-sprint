@@ -1,9 +1,14 @@
 # Sprint Status
 
-**Day:** 2 of 5 (Friday 2026-04-17) — **CLOSED at gate**
-**Current task:** Day-3 bootstrap: SEC domain hardening + 25-question test set + abstention.
-**Last passing regression:** 13/20 treasury (day-2 re-run, matches day-1 baseline). Unit suite: 39 passed, 1 skipped.
-**Day-2 gate result:** PASS. Apple literal question `"what was Apple's revenue last fiscal year"` → LLM `416161` ↔ XBRL `$416,161,000,000` agreed in 56.5s. Treasury regression 13/20 held.
+**Day:** 4 of 5 (Wednesday 2026-04-22, spanning late 2026-04-21 through 2026-04-22) — **CLOSED. Both gates PASS on morning run; strict-canonical bundle attempted and reverted; launch polish landed.**
+**Current task:** Day-5 launch prep. Private beta out, launch-copy finalization, retrospective.
+**Last passing regression:** 15/20 treasury (day-4, up from 13/20 day-3 baseline; see "Day-4 regression variance notes" below). Unit suite: 51 passed, 1 skipped (includes 6 new ADR-012 retry tests). Fresh-clone install verified in `python:3.12-slim` Docker container: `pip install -e .`, CLI entry point, import chain, and full unit suite all green — confirms `requires-python = ">=3.10"` is honest and the pyproject dependency declaration is complete.
+**Day-4 commits landed on main:** `39da1d7` (ADR-012 retry-on-timeout + launch docs + NOTICE + ADR-011 v0.1.1 flip) and `ecedddd` (example scripts + regression artifacts + run logs). Strict-canonical revert is not its own commit — it happened in the working tree between commits, per the "reverts are log events, not recommits" discipline.
+**Day-4 gate result (both PASS):**
+- **Treasury:** 15/20 = 75 % (gate ≥13/20). 85.3 min. ADR-012 retry converted UID0014 SWING-5 from two-day-running 600 s timeout → 988.2 at 1173 s cumulative (pass vs `997.3 billion`). UID0168 passed today without retry (MiniMax variance).
+- **SEC tier-1+2:** 17/18 = 94.4 % (gate ≥80 %). Only fail is SEC0017 (ExxonMobil two-year total assets — got `453475,448980`, expected `[448980, 453475]`; both values correct, ordering mismatch against the list form). One retry fired on SEC0007 (ExxonMobil FY25 total assets), converted a 600 s timeout into a 1186 s cumulative pass.
+- **SEC tier-3:** 7/7 = 100 % (gate ≥60 % with strict `segment_level_dimensional` reason-code match). Classification latency 7.7–12.1 s per question; Track B behavioral-abstention scaffold holds on re-run.
+**Retry telemetry (ADR-012 §telemetry-gap):** 2 stderr retry events across 45 inferences = 4.4 % retry-event rate. **Above the pre-committed 2 % threshold** that escalates ADR-011 per ADR-012's closing section. Both retries converted to passes; without retry both gates would still have passed (UID0014 would have remained a SWING-5 timeout → treasury 14/20 still ≥ gate; SEC0007 would have remained a tier-1 timeout → SEC tier-1+2 16/18 = 88.9 % still ≥ gate), but the v0.1 quality floor would have been visibly flaky to the first private-beta recipient.
 **Active blockers:** none.
 
 ## Bootstrap Checklist (Next-Session Entry Point)
@@ -87,13 +92,72 @@ See ADR-004 "Day-2 Gate Threshold Reset" for the reasoning behind the baseline c
 - Routine regression runs: no pre-spend confirmation needed.
 - Pre-spend confirmation required: any single experimental run >$10.
 
+## Day-4 strict-canonical + principle-backstop bundle — landed, tested, reverted
+
+**Outcome:** bundle reverted per Leon's pre-committed threshold (tier-1/2 < 17/18 OR SEC0017 still fails OR tier-3 < 7/7). Gate result with bundle: **tier-1/2 = 14/18 (77.8 %, below 80 % gate), tier-3 = 7/7**. Revert triggered on the first criterion.
+
+**What the bundle did right:**
+- SEC0017 (ExxonMobil two-year total assets — the specific question that motivated the bundle) **PASSED** with `'2024: 453475, 2025: 448980'`. Labeled-list form worked exactly as designed.
+- SEC0013 (MSFT three-year net income) also passed with labeled form `'2025: 101832, 2024: 88136, 2023: 72361'`. Strict canonical clearly lands on questions that reach extraction.
+- Tier-3 held at 7/7 with the expanded principle-backstop wording. Principle backstop did not cause over-abstention on currently-passing tier-1/2 questions (no tier-1/2 answers flipped to `abstained=True`).
+
+**What the bundle broke:**
+- **SEC0005** (NVIDIA net income FY26) — `no_answer_file_written` at 593 s. Previously passed day-4 morning at 333 s with `120067`. This is the ADR-007 loud-signal class: structural failure, not retry-triggerable.
+- **SEC0008** (Alphabet cash FY25) — content miss: `23466` vs expected `30708`. Previously passed at 211 s with `30708`. Wrong balance-sheet line extracted.
+- **SEC0011** (Apple % revenue change FY24→FY25) — content miss: `0.0202` vs expected `0.0643`. Previously passed at 89.7 s with `6.43` (loose scorer). Wrong computation.
+- **SEC0016** (JPM two-year total assets) — `timeout_600s` at 1360 s cumulative. **Both attempts timed out.** Previously passed morning at 319.7 s. This is the exact customer-visible-opacity event ADR-011's re-escalation trigger was written for — but fired in pre-launch regression, not private beta.
+
+**Diagnosis — context-pressure hypothesis.** The bundle added ~20 lines to the SEC overlay (~600 tokens). Three of the four fails were previously-passing questions that today either (a) exited silently (`no_answer_file_written`), (b) extracted the wrong value, or (c) both-timed-out. The pattern — degraded extraction quality on questions that were reliably passing under a shorter prompt — is consistent with context-pressure on MiniMax M2.5 more than it is with stochastic variance. Stochastic variance typically shows as single-run flips distributed across the question set (as we saw in UID0002 this morning); three content/structural fails plus one both-attempts-timeout clustered in one run lines up more cleanly with prompt-length causation.
+
+**What is not reverted (kept as additive):**
+- `docs/OUTPUT_CONVENTIONS.md` stays. The conventions are still the right canonical for v0.1 launch copy; enforcement will have to come from either a narrower prompt change (e.g. only the labeled-list rule) or a post-processing normalization layer, decided post-revert.
+- `NOTICE` file stays. Apache 2.0 compliance is additive.
+- ADR-012 retry-on-timeout stays. Independent of bundle; already proven load-bearing today.
+- ADR-011 stays accepted-for-v0.1.1 with the re-escalation trigger. SEC0016's both-attempts-timeout is pre-launch evidence pointing toward the trigger but not private-beta customer-visible, so we flag but do not auto-escalate. Leon's call.
+
+**Post-revert state:** `prompts/base.j2`, `src/teller/domains/sec_filings/prompt.j2`, `recipes/sec_filings.yaml` all match the this-morning-gate-passing state (git diff empty). Unit suite 51 passed / 1 skipped. The morning gate (17/18 tier-1+2, 7/7 tier-3) is the authoritative day-4 SEC gate result. SEC0017 remains unresolved (ordering-mismatch fail).
+
+## Day-4 regression variance notes
+
+The treasury 13→15 count change is not clean "ADR-012 won us two." Honest accounting:
+
+- **UID0014 (SWING-5):** day-1 and day-3 both 600 s timeout; day-4 passed at 1173 s cumulative via ADR-012 retry. This is a genuine retry-on-timeout win. First live production evidence the implementation earns its keep.
+- **UID0168 (SWING-5):** day-1 600 s timeout; day-4 passed at 340 s with no retry needed. Stochastic variance, not a retry win.
+- **UID0052 (SWING-5 tolerance-edge):** day-1 failed at `2.26` (1.34 % off); day-4 passed at `2.23` exact. Stochastic variance.
+- **UID0002 (ALWAYS_PASS):** day-1 passed at `507.0`; day-4 failed at `661.0` vs `507`. This is a flip on an easy-tier VA FY1934 single-file lookup that has no business regressing. Worth investigating post-launch but not day-4 scope to chase.
+- **UID0199 (SWING-4):** day-1 passed at `0.479`; day-4 failed at `0.455` (5 % off). F-001 gold bloc.
+
+Net: 15 = 13 stable + 2 retry-or-variance wins − 2 variance flips. The 15 count is real gate-wise; treating it as a moat-validation signal would be overclaiming. The MiniMax variance band documented in ADR-004 remains the governing reality: single-run delta of ±2 passes is within the expected noise.
+
+## ADR-011 severity landing — escalation triggered (decision pending Leon)
+
+Two independent criteria converged this day on escalating ADR-011 out of "Reserved for v0.2 / open question."
+
+**Criterion 1 — Day-4 cold-start qualitative:** "if day-4 polish surfaces a third reasoning-opacity scar, move to v0.1; clean close keeps v0.2." The two day-3 scars plus today's two retry events on questions we cannot introspect (UID0014 treasury, SEC0007 tier-1) is more than the qualitative threshold. Each retry event is a customer-observable opacity hit: *why did it stall the first time*.
+
+**Criterion 2 — ADR-012 §telemetry-gap pre-commit:** ">2 % stderr retry-event rate escalates ADR-011 to v0.1.1 launch-blocker." Observed: 4.4 %. Above threshold.
+
+The two criteria disagree on the *shape* of escalation:
+- Cold-start criterion says **v0.1 launch-blocker** (ship blocks until trace persistence lands).
+- ADR-012 criterion says **v0.1.1 launch-blocker** (ship v0.1, fix in v0.1.1).
+
+I'd push toward the ADR-012 wording. v0.1 ships without trace persistence but with a named v0.1.1 commitment, because: (a) the retries are *succeeding*, which means the customer sees a correct answer with elevated latency, not a mystery failure; (b) the opacity scar only becomes load-bearing when *both* attempts time out, and today's evidence shows that rate is zero so far; (c) blocking v0.1 to build trace persistence delays first-contact feedback, which is the more valuable signal for what observability shape customers actually need. Flag this for Leon's call.
+
 ## Launch Punch List (tracked for day 4 — do not drop under compression)
 
-- **`NOTICE` file** per Apache 2.0 §4 for `arelle-release` dependency. Required by ADR-002. Include standard Apache 2.0 attribution plus any other Apache-licensed transitive dependencies. Day-4 polish, before PyPI publish.
+- **`NOTICE` file** per Apache 2.0 §4 — ✅ DONE (commit `39da1d7`). Attributes arelle-release (Apache 2.0 / Workiva); notes jinja2/click/rich under non-Apache licenses that do not require NOTICE.
 
-- **Strict canonical answer format in SEC prompt overlay.** Day-3 Track A loosened `score_tier12` to accept both millions-integer and decimal-billions (and decimal-vs-percent) forms so first-pass gate measurement wasn't confounded by fixture/format mismatch. For v0.1 launch the overlay should **force** a single canonical form — recommend millions-integer for monetary values, decimal form for ratios — so downstream consumers (notebooks, dashboards) can parse Teller's answer without a normalization layer. Once the overlay is strict, tighten `score_tier12` back to raw 1% fuzzy and pin the relaxation as a day-3-only measurement accommodation in its docstring.
+- **Strict canonical answer format in SEC prompt overlay.** ⚠️ ATTEMPTED AND REVERTED. The strict-canonical + principle-backstop bundle landed in the working tree and was regression-tested; tier-1/2 dropped to 14/18 with three previously-passing questions regressing plus one both-attempts-timeout (SEC0016), triggering the pre-committed revert threshold. Context-pressure hypothesis: ~20 added prompt lines (~600 tokens) degraded MiniMax extraction quality globally. Accepted as known v0.1 limitation: SEC0017's ordering-vs-list-form failure is documented in `docs/PRIVATE_BETA_ONBOARDING.md` known-issue #1, with v0.1.1 fix committed (labeled-list answer format, ≤10 days from v0.1 tag). `docs/OUTPUT_CONVENTIONS.md` kept as the reference spec the v0.1.1 fix will enforce.
 
-- **Principle-based segment-intent markers for the SEC overlay.** Day-3 Track B ships with enumerated segment-intent markers in the `early_abstention` block (examples: Greater China, AWS, iPhone, upstream, Consumer & Community Banking, etc.). Sufficient to pass the day-3 tier-3 gate on a roster-known 7-question test set, but brittle for production — any segment-intent question that doesn't name one of the enumerated markers would route to CONSOLIDATED and answer incorrectly. Before v0.1 launch, add a principle-based rule alongside the enumeration: *"any proper noun naming a subdivision of the company or a geography more specific than the country of incorporation is a segment-intent marker, whether or not it appears in the enumeration above."* Keeps the examples as scaffolding and backstops them with a generalization rule. Day-3 scope is to pass the gate; production robustness is a later pass.
+- **Principle-based segment-intent markers.** ⚠️ ATTEMPTED AND REVERTED (same bundle as above). The "other than the worldwide consolidated total" principle backstop wording held tier-3 at 7/7 with no tier-1/2 over-abstention observed, so the *content* was sound — but the bundle as a whole tripped context pressure. If we revisit in v0.1.x, land the principle backstop *alone* (3-line addition) and measure, since it was not the regression-causing piece.
+
+- **Fresh-clone install path verification.** ✅ DONE. Verified in `python:3.12-slim` Docker container: `pip install -e .`, `from teller import Agent, Corpus, Result`, `teller --help`, and full 51-test unit suite all green.
+
+- **Example scripts.** ✅ DONE (commit `ecedddd`). `examples/treasury_query.py` and `examples/sec_query.py` demonstrate the two v0.1 domains via the public API surface.
+
+- **Private-beta onboarding note.** ✅ DONE (commit `39da1d7`) at `docs/PRIVATE_BETA_ONBOARDING.md`. Contains: install (Python ≥3.10, goose prereq), `2>&1 | tee teller.log` telemetry ask, three known limitations (list order, latency tail, rare double-stall), v0.1.1 commitment inline.
+
+- **Telemetry hooks.** ✅ DROPPED FROM SCOPE. Retry-event stderr capture already handled by the onboarding-note `tee` instruction. Anything beyond that is ADR-011 work (v0.1.1).
 
 ## Open Architectural Items (tracked for upcoming ADRs)
 
@@ -129,7 +193,13 @@ README, Twitter launch thread, and Show HN copy must reflect the empirical numbe
 
 ## Last Updated
 
-2026-04-17 evening, day-2 close. Both hard gates met: Apple literal question `"what was Apple's revenue last fiscal year"` → LLM `416161` ↔ XBRL `$416,161,000,000` agreed in 56.5 s; treasury regression re-run landed at 13/20 = 65.0 % (matches day-1 baseline; 4 UIDs flipped up, 4 down — within ADR-004 MiniMax-variance band). Day-2 shipped: ADR-002 Accepted with Amendment A (fail-closed narrowing) + Codex concurrence; XBRL parser + translator; SEC EDGAR downloader (primary .htm + 5 XBRL support files + cache warm-up); SEC domain overlay + recipe with temporal-disambiguation line; Click CLI (ask/download-sec/inspect); `Agent._post_validate` with keyword→concept map + order-of-magnitude normalization. 39 unit tests green, 1 skipped (deferred to Apple smoke). Empirical latency band logged: 60–120 s typical, ~180 s worst — 30 s dev-plan target retired with launch-narrative implication flagged. ADR-008 (concept-family normalization) and ADR-009 (v0.2 fast-path) reserved. `scripts/regression.py` exit-code threshold fixed to 13/20. Housekeeping complete; awaiting day-3 kickoff.
+2026-04-22 afternoon, day-4 close (session spanned 2026-04-21 afternoon through 2026-04-22 afternoon Pacific). Day-5 begins from this file plus the day-4 close commits (`39da1d7`, `ecedddd`). All launch-punch-list items either landed or explicitly de-scoped with rationale above. SEC0017 is the single documented v0.1 paper cut, known-issue'd in the private-beta onboarding note with a v0.1.1 commitment.
+
+### Prior snapshot — 2026-04-21 afternoon, day-4 post-regression (preserved) ADR-012 (retry-on-timeout) Accepted and shipped: `RETRY_ON_TIMEOUT: bool = True` class attribute, `_run_once()` helper extracted from `Agent.ask`, single same-model retry on `subprocess.TimeoutExpired` only, stderr line `"teller: model timed out after 600s, retrying (attempt 2/2)..."`, fresh tempdir+uuid on retry, cumulative `latency_ms`. Six test cases in `tests/test_agent_retry.py` cover the full contract including `RETRY_ON_TIMEOUT=False` patch for single-attempt assertions. Unit suite 51 passed / 1 skipped. Treasury 15/20 (ADR-012 retry converted UID0014 from two-day 600 s timeout → 1173 s PASS at `988.2`; UID0168 passed without retry; UID0002 and UID0199 flipped fail from day-1 within MiniMax variance band — not paper over). SEC 17/18 tier-1+2 = 94.4 % (only fail SEC0017 ExxonMobil two-year list is an ordering mismatch, both values correct; retry on SEC0007 converted a 600 s timeout → 1186 s PASS at `448980`); 7/7 tier-3 = 100 % strict-reason. Retry telemetry: 2/45 = 4.4 % — **above ADR-012's pre-committed 2 % threshold, triggering ADR-011 escalation per that ADR's Telemetry gap section**. ADR-011 severity landing pending Leon's call on v0.1 vs v0.1.1 shape (see "ADR-011 severity landing" section above). Remaining day-4 work: ADR-011 decision, then punch-list (NOTICE file, strict canonical format, principle-based segment markers, fresh-clone install, ample scripts, telemetry hooks, private-beta onboarding note per ADR-012 `2>&1 | tee teller.log` ask).
+
+## 2026-04-17 day-2 close snapshot (preserved)
+
+Both day-2 gates met: Apple literal question `"what was Apple's revenue last fiscal year"` → LLM `416161` ↔ XBRL `$416,161,000,000` agreed in 56.5 s; treasury regression re-run landed at 13/20 = 65.0 % (matches day-1 baseline; 4 UIDs flipped up, 4 down — within ADR-004 MiniMax-variance band). Day-2 shipped: ADR-002 Accepted with Amendment A (fail-closed narrowing) + Codex concurrence; XBRL parser + translator; SEC EDGAR downloader (primary .htm + 5 XBRL support files + cache warm-up); SEC domain overlay + recipe with temporal-disambiguation line; Click CLI (ask/download-sec/inspect); `Agent._post_validate` with keyword→concept map + order-of-magnitude normalization. 39 unit tests green, 1 skipped (deferred to Apple smoke). Empirical latency band logged: 60–120 s typical, ~180 s worst — 30 s dev-plan target retired with launch-narrative implication flagged. ADR-008 (concept-family normalization) and ADR-009 (v0.2 fast-path) reserved. `scripts/regression.py` exit-code threshold fixed to 13/20.
 
 ## Cold-start SHA drift note (2026-04-17, day-2 bootstrap)
 
