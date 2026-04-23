@@ -40,9 +40,9 @@ dev = [
 teller = "teller.cli:main"
 
 [project.urls]
-Homepage = "https://doloresresearch.com"
-Repository = "https://github.com/dolores-research/teller"
-Issues = "https://github.com/dolores-research/teller/issues"
+Homepage = "https://github.com/Leonwenhao/teller-sprint"
+Repository = "https://github.com/Leonwenhao/teller-sprint"
+Issues = "https://github.com/Leonwenhao/teller-sprint/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
