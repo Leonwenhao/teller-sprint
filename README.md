@@ -4,7 +4,7 @@ Grounded reasoning agent for SEC filings and U.S. Treasury bulletins. MIT-licens
 
 [![Sentient Arena Cohort 0 — highest accuracy on OfficeQA (71.5%)](https://img.shields.io/badge/Sentient_Arena_Cohort_0-71.5%25_on_OfficeQA_%7C_highest_accuracy-blue)](docs/research/final_report.md)
 
-**Teller cross-checks every answer against what the company reported to the SEC in XBRL. When the two disagree, Teller abstains and shows both.** The tool is built to distinguish questions it can answer from questions it can't — not to confirm that the LLM guessed right.
+**Teller cross-checks every answer against what the company reported to the SEC in XBRL. When the two disagree, Teller surfaces both values instead of hiding the conflict.** The tool is built to distinguish questions it can answer from questions it can't — not to confirm that the LLM guessed right.
 
 v0.1 does two domains: **SEC filings** (10-K / 10-Q with XBRL cross-check) and **U.S. Treasury Bulletins** (1939–present). Default model is MiniMax M2.5 via OpenRouter; one-line swap to any other OpenRouter-served model.
 
@@ -70,7 +70,7 @@ Every call returns a `Result`:
 - `abstained`, `abstention_reason` — set when the agent determined the question was not answerable from available evidence.
 - `xbrl_validation` — SEC domain only. Fields: `performed`, `agreed`, `tagged_value`, `reason`. For non-SEC calls, `performed=False`.
 - `latency_ms` — end-to-end, inclusive of any retry.
-- `sources` — page-level citations to source documents.
+- `sources` — reserved citation field; v0.1 carries the auditable tagged fact via `xbrl_validation` for supported SEC metrics.
 
 ## Empirical characteristics
 

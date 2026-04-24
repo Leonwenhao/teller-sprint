@@ -1,8 +1,8 @@
 # Teller Output Conventions
 
-Teller answers follow a single canonical format for each value shape so downstream
-tools (spreadsheets, notebooks, parsers) don't need normalization logic. The SEC
-domain prompt overlay enforces these; treasury and future domains may override.
+Reference spec for v0.1.1; v0.1 does not enforce this in the SEC prompt.
+The target is a single canonical format for each value shape so downstream tools
+(spreadsheets, notebooks, parsers) don't need normalization logic.
 
 | Shape | Format | Example |
 |---|---|---|
@@ -15,5 +15,5 @@ Single-period answers are a bare number. Only multi-period questions carry year
 labels. Ordering follows the filing's reporting order (typically latest-year-first);
 year labels make order unambiguous for downstream consumers.
 
-These conventions are enforced in `src/teller/domains/sec_filings/prompt.j2`
-(`domain_output_format` block) and referenced by the README quickstart at launch.
+These conventions are not enforced in v0.1's SEC prompt. v0.1.1 will enforce
+them via a smaller prompt change or a non-prompt normalization layer.

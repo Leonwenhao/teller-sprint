@@ -665,7 +665,7 @@ Captured now (pre-first-gate-run, 2026-04-18) while the reasoning is fresh. See 
 
 ## ADR-011 — LLM reasoning-trace persistence for observability
 
-**Status:** Accepted for v0.1.1. Lands within the first post-launch minor, **no later than two weeks after the v0.1 tag**. Re-escalates to v0.1 launch-blocker (hotfix before second private-beta recipient) if any post-launch run produces a both-attempts-timeout — that is the customer-visible opacity event, a different failure class than a silently-recovered retry.
+**Status:** Accepted for v0.1.1. Lands within the first post-launch minor, **no later than 10 calendar days after the v0.1 tag**. Re-escalates to v0.1 launch-blocker (hotfix before second private-beta recipient) if any post-launch run produces a both-attempts-timeout — that is the customer-visible opacity event, a different failure class than a silently-recovered retry.
 **Date accepted-for-v0.1.1:** 2026-04-21
 **Authors:** Claude Code (framing), Leon (decision)
 
@@ -684,7 +684,7 @@ The Agent runs goose in an ephemeral tempdir with a per-invocation uuid session 
 
 **Decision criteria (resolved 2026-04-21):** The day-4 regression (2 retries / 45 inferences = 4.4 %) tripped the ADR-012 pre-committed 2 % threshold. Both criteria for escalation — the cold-start qualitative "third reasoning-opacity scar" and the ADR-012 quantitative threshold — fired. They disagreed only on shape: cold-start implied v0.1 launch-blocker, ADR-012 implied v0.1.1 launch-blocker. Resolution in favor of v0.1.1 because (a) today's retries *succeeded*, so customers see correct-answer-at-elevated-latency rather than mystery failures; (b) the load-bearing opacity event is a both-attempts-timeout, which has zero observed incidence to date; (c) delaying v0.1 to build trace persistence delays first-contact feedback that would tell us *which* trace shape customers actually need.
 
-**Commitment language (binding, not aspirational).** ADR-011 v0.1.1 lands within the first post-launch minor, no later than two weeks after the v0.1 tag. This is a calendar bound, not a scope bound: if trace persistence is not ready at day-14 we ship v0.1.1 with a smaller trace shape and pick up the remainder in v0.1.2, we do not slip the calendar. The commitment exists to prevent v0.1.1 from becoming "someday."
+**Commitment language (binding, not aspirational).** ADR-011 v0.1.1 lands within the first post-launch minor, no later than 10 calendar days after the v0.1 tag. This is a calendar bound, not a scope bound: if trace persistence is not ready at day 10 we ship v0.1.1 with a smaller trace shape and pick up the remainder in v0.1.2, we do not slip the calendar. The commitment exists to prevent v0.1.1 from becoming "someday."
 
 **Re-escalation trigger.** If any post-launch run — private-beta or public — produces a both-attempts-timeout (`abstention_reason="timeout_600s"` post-ADR-012 meaning both retries exhausted), ADR-011 re-escalates to v0.1 launch-blocker and a hotfix must land before the second private-beta recipient receives Teller. Rationale: a both-attempts-timeout is the customer-visible opacity event — a failure the customer cannot reason about and we cannot debug. Silently-recovered retries are not that event; today's 4.4 % retry rate is a latency tax on the customer, not an opacity hit on the customer. The re-escalation trigger cleanly separates the two.
 
