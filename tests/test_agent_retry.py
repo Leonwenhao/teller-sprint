@@ -33,15 +33,19 @@ def fake_environment(monkeypatch, tmp_path):
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-test")
     monkeypatch.setattr("teller.agent.shutil.which", lambda _name: "/usr/local/bin/goose")
 
-    # Agent resolves recipe at <repo_root>/recipes/<domain>.yaml. The real
-    # repo already ships recipes/treasury.yaml; point _repo_root at a tmp
-    # tree so we don't depend on the real recipe's contents during these
-    # retry-loop tests.
-    repo_root = tmp_path / "repo"
-    (repo_root / "recipes").mkdir(parents=True)
-    (repo_root / "recipes" / "treasury.yaml").write_text("# stub recipe for retry tests\n")
+    # Agent resolves recipe via _recipe_path(domain), which in production
+    # uses importlib.resources to locate teller/recipes/<domain>.yaml inside
+    # the installed package. Point _recipe_path at a tmp tree so these
+    # retry-loop tests don't depend on the real shipped recipe's contents.
+    recipe_dir = tmp_path / "recipes"
+    recipe_dir.mkdir(parents=True)
+    (recipe_dir / "treasury.yaml").write_text("# stub recipe for retry tests\n")
 
-    monkeypatch.setattr(Agent, "_repo_root", staticmethod(lambda: repo_root))
+    monkeypatch.setattr(
+        Agent,
+        "_recipe_path",
+        staticmethod(lambda domain: recipe_dir / f"{domain}.yaml"),
+    )
 
     corpus_dir = tmp_path / "corpus"
     corpus_dir.mkdir()

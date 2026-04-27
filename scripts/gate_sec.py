@@ -36,7 +36,10 @@ from datetime import datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "src"))
+# Post-hotfix: `teller` is resolved from site-packages (wheel install) or
+# the editable source tree if one is active. The prior `sys.path.insert`
+# for `src/` was a pre-packaging workaround and has been removed so the
+# regression evidence reflects the actual distribution artifact.
 sys.path.insert(0, str(REPO / "tests" / "fixtures" / "officeqa"))
 
 from teller import Agent, Corpus  # noqa: E402

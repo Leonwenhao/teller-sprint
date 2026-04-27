@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import uuid
+from importlib.resources import files as _resource_files
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
@@ -89,8 +90,9 @@ class Agent:
     cross-validation against the company's own tagged facts.
 
     Under the hood, `ask` wraps the `goose` CLI via subprocess (per ADR-006),
-    following the Arena-winning pattern. The recipe for the bound domain
-    lives at `recipes/<domain>.yaml`; absolute corpus paths in the recipe
+    following the Arena-winning pattern. The recipe for the bound domain is
+    shipped inside the `teller` package at `teller/recipes/<domain>.yaml` and
+    resolved via `importlib.resources`; absolute corpus paths in the recipe
     are substituted at call time so Teller works on any filesystem.
 
     Example::
@@ -146,8 +148,7 @@ class Agent:
         if not os.environ.get("OPENROUTER_API_KEY"):
             raise MissingAPIKeyError()
 
-        repo_root = self._repo_root()
-        recipe_src = repo_root / "recipes" / f"{self.domain}.yaml"
+        recipe_src = self._recipe_path(self.domain)
         if not recipe_src.exists():
             raise FileNotFoundError(
                 f"No recipe for domain {self.domain!r} at {recipe_src}. "
@@ -326,9 +327,14 @@ class Agent:
             )
 
     @staticmethod
-    def _repo_root() -> Path:
-        """Return the teller/ repo root (two levels up from src/teller/)."""
-        return Path(__file__).parent.parent.parent.resolve()
+    def _recipe_path(domain: str) -> Path:
+        """Return the path to the packaged recipe YAML for `domain`.
+
+        Uses `importlib.resources` so the lookup works for both editable
+        source-tree installs and wheel installs. Returns a `pathlib.Path`
+        (the file is always unpacked on disk for both install paths).
+        """
+        return Path(str(_resource_files("teller") / "recipes" / f"{domain}.yaml"))
 
     # ------------------------------------------------------------------
     # Post-validation (XBRL cross-check for SEC filings)

@@ -2,19 +2,20 @@
 """Render the `prompt:` block of each domain recipe from its Jinja overlay.
 
 Single source of truth for domain prompts is the overlay .j2 file under
-`src/teller/domains/<domain>/prompt.j2` (which extends `prompts/base.j2`).
-This script re-renders each overlay and patches the `prompt: |` block of
-the corresponding `recipes/<domain>.yaml`, leaving every other recipe
-field untouched (extensions, settings, activities, parameters, etc.).
+`src/teller/domains/<domain>/prompt.j2` (which extends
+`src/teller/prompts/base.j2`). This script re-renders each overlay and
+patches the `prompt: |` block of the corresponding
+`src/teller/recipes/<domain>.yaml`, leaving every other recipe field
+untouched (extensions, settings, activities, parameters, etc.).
 
 Narrow by design: the recipe YAML carries goose-specific configuration
 that is not derivable from the Jinja template. A full round-trip render
 would lose that information. This script only touches the prompt body.
 
-Run after any change to `prompts/base.j2` or a domain overlay .j2.
+Run after any change to `src/teller/prompts/base.j2` or a domain overlay .j2.
 
 Currently handled:
-  - sec_filings (src/teller/domains/sec_filings/prompt.j2 + prompts/base.j2)
+  - sec_filings (src/teller/domains/sec_filings/prompt.j2 + src/teller/prompts/base.j2)
 
 Treasury recipe is hand-maintained for day-3 scope — it predates the
 base.j2 split and regenerating would require a treasury overlay .j2
@@ -30,7 +31,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-RECIPES = REPO / "recipes"
+RECIPES = REPO / "src" / "teller" / "recipes"
 
 
 def render_sec_filings_prompt() -> str:
@@ -44,7 +45,7 @@ def render_sec_filings_prompt() -> str:
     env = Environment(
         loader=FileSystemLoader([
             str(REPO / "src" / "teller" / "domains" / "sec_filings"),
-            str(REPO / "prompts"),
+            str(REPO / "src" / "teller" / "prompts"),
         ]),
         keep_trailing_newline=True,
     )

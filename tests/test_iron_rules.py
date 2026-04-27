@@ -21,7 +21,7 @@ import pytest
 from jinja2 import Environment, FileSystemLoader
 
 ROOT = Path(__file__).parent.parent
-PROMPTS_DIR = ROOT / "prompts"
+PROMPTS_DIR = ROOT / "src" / "teller" / "prompts"
 DOMAINS_DIR = ROOT / "src" / "teller" / "domains"
 
 
@@ -60,7 +60,7 @@ def test_base_contains_iron_rule_anchor(anchor_name: str, anchor_phrase: str) ->
     """The base template must contain every iron-rule anchor."""
     rendered = _render_base()
     assert anchor_phrase in rendered, (
-        f"Iron rule {anchor_name!r} missing from rendered prompts/base.j2.\n"
+        f"Iron rule {anchor_name!r} missing from rendered src/teller/prompts/base.j2.\n"
         f"Expected anchor: {anchor_phrase!r}\n"
         f"See docs/dev/ARCHITECTURE_DECISIONS.md ADR-001. Changes to canonical "
         f"anchors require a new ADR that explicitly deprecates ADR-001."

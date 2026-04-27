@@ -44,8 +44,19 @@ Homepage = "https://github.com/Leonwenhao/teller-sprint"
 Repository = "https://github.com/Leonwenhao/teller-sprint"
 Issues = "https://github.com/Leonwenhao/teller-sprint/issues"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+teller = [
+    "recipes/*.yaml",
+    "prompts/*.j2",
+    "domains/*/prompt.j2",
+    "domains/*/skill.md",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

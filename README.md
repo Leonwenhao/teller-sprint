@@ -136,13 +136,13 @@ Neither the Arena credential nor Teller alone carries the full argument. The pai
 ## Project structure
 
 ```
-src/teller/         # package
-prompts/            # Jinja templates (base + domain overlays)
-recipes/            # rendered goose recipes
-examples/           # minimal scripts for each domain
-docs/research/      # Arena methodology + final report
-docs/dev/           # ADRs, sprint notes, retrospectives
-tests/              # unit suite (pytest)
+src/teller/           # package
+src/teller/prompts/   # Jinja templates (base + domain overlays), shipped with the wheel
+src/teller/recipes/   # rendered goose recipes, shipped with the wheel
+examples/             # minimal scripts for each domain
+docs/research/        # Arena methodology + final report
+docs/dev/             # ADRs, sprint notes, retrospectives
+tests/                # unit suite (pytest)
 ```
 
 ## License
