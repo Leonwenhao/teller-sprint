@@ -44,13 +44,17 @@ Teller emits operational signals to stderr that we find valuable in the first we
 
 ## Known v0.1 limitations
 
-Three things we know about. Naming them up front is cheaper than you discovering them.
+Five things we know about. Naming them up front is cheaper than you discovering them.
 
 **1. Multi-year list answers come back in reporting order, not question order.** For questions like "total assets at the end of each of fiscal years 2024 and 2025," Teller emits the values in the order the filing reports them — typically latest-year-first — which is the opposite of the natural English order in the question. Both values are correct; the order may surprise your downstream parser. Addressed in v0.1.1 via explicit year labels on list answers.
 
 **2. Latency tail — occasional queries exceed 3 minutes.** About 5 % of queries will see a first-attempt stall, trigger an automatic retry, and return at 2–3× typical latency. You'll see exactly one stderr line: `teller: model timed out after 600s, retrying (attempt 2/2)...`. In day-4 regression both observed retries recovered; treat the returned answer normally and inspect XBRL/citations before relying on it. This is a known pattern of MiniMax M2.5 tail latency, not a Teller bug; we built the retry specifically for it.
 
 **3. Rare double-stall — both retry attempts time out.** We've seen this once in our regression testing. Real-world rate is unknown. When it happens you'll see `abstained=True, abstention_reason="timeout_600s"` on the Result. The honest answer today: we can't tell you why it stalled. Reasoning-trace persistence that would let us debug this is the first v0.1.1 item; target is 10 days from v0.1 tag. If you hit a double-stall, save the log file and send it over. It's the first data point we'd like to have.
+
+**4. Stream-decode-class failures can look like structural failures.** `abstention_reason="no_answer_file_written"` usually means Teller or goose exited without producing the required answer file, but we have also seen provider-side stream decode errors produce the same visible outcome. In the latest pre-beta run this class appeared 5 times across Treasury + SEC, versus 1 on day 4; at least one was confirmed provider-side. If you see `no_answer_file_written`, send the full `teller.log` stderr output so we can separate structural failures from provider stream failures. v0.1.1 trace persistence will make this attribution positive instead of forensic.
+
+**5. Treat `agreed=false` as a review signal, not a final fraud alarm.** Teller's XBRL cross-check is conservative and now skips cases where the comparison is not meaningful, but residual edge cases will remain. Before treating `agreed=false` as a real Teller-vs-company disagreement, verify three things: the answer is numeric, the company in your question matches the downloaded corpus, and the period in your question matches the period being validated. If any of those are off, send the log and Result JSON rather than relying on the disagreement flag alone.
 
 ## What we want back
 

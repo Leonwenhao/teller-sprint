@@ -163,6 +163,10 @@ def ask(
     as_json: bool,
 ) -> None:
     """Run a grounded Q&A against the corpus."""
+    if not question.strip():
+        click.echo("error: question must not be empty.", err=True)
+        sys.exit(2)
+
     domain = domain or _infer_domain(corpus_dir)
     if domain == "unknown":
         click.echo(

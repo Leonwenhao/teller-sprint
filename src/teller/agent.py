@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -51,6 +52,60 @@ _SEC_KEYWORD_TO_CONCEPTS: dict[str, list[str]] = {
     "assets": ["us-gaap:Assets"],
     "cash": ["us-gaap:CashAndCashEquivalentsAtCarryingValue"],
 }
+
+_SEC_ENTITY_ALIASES: dict[str, str] = {
+    "aapl": "AAPL",
+    "apple": "AAPL",
+    "apple inc": "AAPL",
+    "msft": "MSFT",
+    "microsoft": "MSFT",
+    "microsoft corporation": "MSFT",
+    "wmt": "WMT",
+    "walmart": "WMT",
+    "walmart inc": "WMT",
+    "nvda": "NVDA",
+    "nvidia": "NVDA",
+    "nvidia corporation": "NVDA",
+    "googl": "GOOGL",
+    "alphabet": "GOOGL",
+    "google": "GOOGL",
+    "alphabet inc": "GOOGL",
+    "amzn": "AMZN",
+    "amazon": "AMZN",
+    "amazon.com": "AMZN",
+    "jpm": "JPM",
+    "jpmorgan": "JPM",
+    "jpmorgan chase": "JPM",
+    "xom": "XOM",
+    "exxon": "XOM",
+    "exxon mobil": "XOM",
+    "exxonmobil": "XOM",
+    "pfe": "PFE",
+    "pfizer": "PFE",
+    "tsla": "TSLA",
+    "tesla": "TSLA",
+}
+
+_SEC_TICKERS = frozenset(_SEC_ENTITY_ALIASES.values())
+
+_SCOPED_REVENUE_TERMS = (
+    "services",
+    "service",
+    "iphone",
+    "ipad",
+    "mac",
+    "wearables",
+    "product",
+    "products",
+    "segment",
+    "geographic",
+    "region",
+    "americas",
+    "europe",
+    "greater china",
+    "japan",
+    "rest of asia pacific",
+)
 
 
 class GooseNotFoundError(RuntimeError):
@@ -358,6 +413,59 @@ class Agent:
         if self.domain != "sec_filings":
             return XBRLValidation(performed=False)
 
+        if not _is_numeric_scalar(answer):
+            return XBRLValidation(
+                performed=False,
+                reason="non_numeric_answer",
+                note=(
+                    "answer is not a single numeric scalar; XBRL comparison "
+                    "would be ambiguous"
+                ),
+            )
+
+        question_entity = _extract_question_entity(question)
+        if question_entity is None:
+            return XBRLValidation(
+                performed=False,
+                reason="entity_unspecified",
+                note=(
+                    "question does not name a supported company or ticker; "
+                    "XBRL comparison skipped"
+                ),
+            )
+
+        corpus_entity = _infer_corpus_entity(self.corpus.path, question_entity)
+        if corpus_entity is not None and corpus_entity != question_entity:
+            return XBRLValidation(
+                performed=False,
+                reason="entity_mismatch",
+                note=(
+                    f"question entity={question_entity}; "
+                    f"corpus entity={corpus_entity}"
+                ),
+            )
+
+        requested_period = _extract_question_fiscal_year(question)
+        if requested_period is None:
+            return XBRLValidation(
+                performed=False,
+                reason="period_unspecified",
+                note=(
+                    "question does not specify a fiscal period; XBRL comparison "
+                    "would default to the filing period"
+                ),
+            )
+
+        if _has_scoped_revenue_request(question):
+            return XBRLValidation(
+                performed=False,
+                reason="concept_unsupported",
+                note=(
+                    "question asks for a scoped revenue line; v0.1 XBRL "
+                    "validation only checks supported consolidated concepts"
+                ),
+            )
+
         # Lazy import — avoids the ~2 s arelle import cost for callers
         # that never hit the SEC path.
         from teller.validation.xbrl import (
@@ -366,7 +474,7 @@ class Agent:
             synthesize_xbrl_validation,
         )
 
-        instance_path = self._find_xbrl_instance()
+        instance_path = self._find_xbrl_instance(question_entity)
         if instance_path is None:
             return XBRLValidation(
                 performed=False,
@@ -396,13 +504,26 @@ class Agent:
                 reason="xbrl_period_not_found",
                 note="could not determine DocumentPeriodEndDate from the filing",
             )
+        filing_fiscal_year = _fiscal_year_from_period_end(period_end)
+        if isinstance(requested_period, int) and filing_fiscal_year != requested_period:
+            return XBRLValidation(
+                performed=False,
+                reason="period_mismatch",
+                note=(
+                    f"question fiscal year=FY{requested_period}; "
+                    f"filing period end={period_end}"
+                ),
+            )
 
         last_lookup: Optional[FactLookup] = None
         for concept in concepts:
             lookup = lookup_fact(instance_path, concept, period_end)
             last_lookup = lookup
             if lookup.available:
-                return synthesize_xbrl_validation(lookup, agent_answer=_normalize_numeric(answer, lookup.value))
+                return synthesize_xbrl_validation(
+                    lookup,
+                    agent_answer=_normalize_numeric(answer, lookup.value),
+                )
 
         # None of the candidate concepts produced an available fact.
         # Surface the last lookup's reason (most informative — e.g.
@@ -411,19 +532,37 @@ class Agent:
             return synthesize_xbrl_validation(last_lookup)
         return XBRLValidation(performed=False, reason="concept_unknown")
 
-    def _find_xbrl_instance(self) -> Optional[Path]:
+    def _find_xbrl_instance(
+        self, preferred_entity: Optional[str] = None
+    ) -> Optional[Path]:
         """Find a single .htm iXBRL instance under `self.corpus.path`.
 
-        Returns the first `.htm` / `.html` file found recursively. When
-        the corpus contains multiple filings, the result is arbitrary —
-        v0.1 smoke is scoped to one filing at a time. Multi-filing
-        corpora are a v0.2 concern (batch processing ticker lists).
+        When `preferred_entity` is supplied and the corpus is a parent
+        directory like ./sec_data, prefer that ticker's subdirectory.
+        Otherwise return the first `.htm` / `.html` file found recursively.
         """
         root = self.corpus.path
-        for pattern in ("**/*.htm", "**/*.html"):
-            for candidate in root.glob(pattern):
-                if candidate.is_file() and candidate.stat().st_size > 1000:
-                    return candidate
+        search_roots = []
+        if preferred_entity is not None:
+            if root.name.upper() == preferred_entity:
+                search_roots.append(root)
+            if root.exists():
+                search_roots.extend(
+                    p
+                    for p in root.rglob("*")
+                    if p.is_dir() and p.name.upper() == preferred_entity
+                )
+        search_roots.append(root)
+
+        seen: set[Path] = set()
+        for search_root in search_roots:
+            if search_root in seen:
+                continue
+            seen.add(search_root)
+            for pattern in ("**/*.htm", "**/*.html"):
+                for candidate in search_root.glob(pattern):
+                    if candidate.is_file() and candidate.stat().st_size > 1000:
+                        return candidate
         return None
 
 
@@ -435,6 +574,95 @@ def _guess_gaap_concepts(question: str) -> list[str]:
         if keyword in q:
             return list(_SEC_KEYWORD_TO_CONCEPTS[keyword])
     return []
+
+
+def _is_numeric_scalar(answer: str) -> bool:
+    """Return True when `answer` is one numeric value, not text or a list."""
+    stripped = answer.strip()
+    if "," in stripped:
+        thousands = r"[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?"
+        if not re.fullmatch(thousands, stripped):
+            return False
+    normalized = stripped.replace(",", "")
+    return bool(re.fullmatch(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)", normalized))
+
+
+def _extract_question_entity(question: str) -> Optional[str]:
+    """Infer a supported SEC fixture ticker from the question text."""
+    q = question.lower()
+    aliases = sorted(
+        _SEC_ENTITY_ALIASES.items(),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    )
+    for alias, ticker in aliases:
+        if re.search(rf"\b{re.escape(alias)}\b", q):
+            return ticker
+    return None
+
+
+def _infer_corpus_entity(
+    corpus_path: Path, requested_entity: Optional[str] = None
+) -> Optional[str]:
+    """Infer corpus ticker from path components or downloaded SEC filenames."""
+    candidates = list(corpus_path.parts)
+    if corpus_path.exists():
+        candidates.extend(p.stem for p in corpus_path.rglob("*") if p.is_file())
+    found: set[str] = set()
+    for candidate in candidates:
+        for token in re.split(r"[^A-Za-z0-9]+", candidate):
+            ticker = token.upper()
+            if ticker in _SEC_TICKERS:
+                found.add(ticker)
+    if requested_entity in found:
+        return requested_entity
+    if len(found) == 1:
+        return next(iter(found))
+    if corpus_path.name.upper() in _SEC_TICKERS:
+        return corpus_path.name.upper()
+    return None
+
+
+def _extract_question_fiscal_year(question: str) -> Optional[int | str]:
+    """Return explicit target fiscal year, 'latest', or None if unspecified."""
+    q = question.lower()
+    years = [int(y) for y in re.findall(r"\b(?:fy|fiscal year)\s*'?(\d{2,4})\b", q)]
+    if not years:
+        years = [int(y) for y in re.findall(r"\b(20\d{2})\b", q)]
+    if years:
+        normalized = [2000 + y if y < 100 else y for y in years]
+        return max(normalized)
+    latest_phrases = (
+        "last fiscal year",
+        "latest fiscal year",
+        "most recent fiscal year",
+        "last year",
+        "most recent year",
+        "latest year",
+    )
+    if any(phrase in q for phrase in latest_phrases):
+        return "latest"
+    return None
+
+
+def _fiscal_year_from_period_end(period_end: str) -> Optional[int]:
+    try:
+        return int(period_end.split("-", 1)[0])
+    except (TypeError, ValueError):
+        return None
+
+
+def _has_scoped_revenue_request(question: str) -> bool:
+    """Detect revenue questions that ask for a segment/product line."""
+    q = question.lower()
+    metric = r"(?:revenue|sales|net sales)"
+    for term in _SCOPED_REVENUE_TERMS:
+        scoped = re.escape(term)
+        if re.search(rf"\b{scoped}\s+{metric}\b", q):
+            return True
+        if re.search(rf"\b{metric}\s+(?:from|for|in)\s+{scoped}\b", q):
+            return True
+    return False
 
 
 def _extract_document_period_end(instance_path: Path) -> Optional[str]:
