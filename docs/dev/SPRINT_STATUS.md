@@ -1,15 +1,21 @@
 # Sprint Status
 
-**Day:** 4 of 5 (Wednesday 2026-04-22, spanning late 2026-04-21 through 2026-04-22) — **CLOSED. Both gates PASS on morning run; strict-canonical bundle attempted and reverted; launch polish landed.**
-**Current task:** Day-5 launch prep. Private beta out, launch-copy finalization, retrospective.
-**Last passing regression:** 15/20 treasury (day-4, up from 13/20 day-3 baseline; see "Day-4 regression variance notes" below). Unit suite: 51 passed, 1 skipped (includes 6 new ADR-012 retry tests). Fresh-clone install verified in `python:3.12-slim` Docker container: `pip install -e .`, CLI entry point, import chain, and full unit suite all green — confirms `requires-python = ">=3.10"` is honest and the pyproject dependency declaration is complete.
-**Day-4 commits landed on main:** `39da1d7` (ADR-012 retry-on-timeout + launch docs + NOTICE + ADR-011 v0.1.1 flip) and `ecedddd` (example scripts + regression artifacts + run logs). Strict-canonical revert is not its own commit — it happened in the working tree between commits, per the "reverts are log events, not recommits" discipline.
-**Day-4 gate result (both PASS):**
-- **Treasury:** 15/20 = 75 % (gate ≥13/20). 85.3 min. ADR-012 retry converted UID0014 SWING-5 from two-day-running 600 s timeout → 988.2 at 1173 s cumulative (pass vs `997.3 billion`). UID0168 passed today without retry (MiniMax variance).
-- **SEC tier-1+2:** 17/18 = 94.4 % (gate ≥80 %). Only fail is SEC0017 (ExxonMobil two-year total assets — got `453475,448980`, expected `[448980, 453475]`; both values correct, ordering mismatch against the list form). One retry fired on SEC0007 (ExxonMobil FY25 total assets), converted a 600 s timeout into a 1186 s cumulative pass.
-- **SEC tier-3:** 7/7 = 100 % (gate ≥60 % with strict `segment_level_dimensional` reason-code match). Classification latency 7.7–12.1 s per question; Track B behavioral-abstention scaffold holds on re-run.
-**Retry telemetry (ADR-012 §telemetry-gap):** 2 stderr retry events across 45 inferences = 4.4 % retry-event rate. **Above the pre-committed 2 % threshold** that escalates ADR-011 per ADR-012's closing section. Both retries converted to passes; without retry both gates would still have passed (UID0014 would have remained a SWING-5 timeout → treasury 14/20 still ≥ gate; SEC0007 would have remained a tier-1 timeout → SEC tier-1+2 16/18 = 88.9 % still ≥ gate), but the v0.1 quality floor would have been visibly flaky to the first private-beta recipient.
-**Active blockers:** none.
+**Day:** 5 of 5 (sprint window stretched 2026-04-22 → 2026-04-28) — **CLOSED. v0.1.0 tagged at `63c35e6`, pushed to private mirror.**
+**Current task:** v0.1.1 work begins. First-recipient round-trip gate (#6 from day-5 cold-start) pending — that is the actual launch-readiness signal.
+**v0.1.0 ship state:**
+- Tag: `v0.1.0` (annotated), pushed to `Leonwenhao/teller-sprint`. Tag object SHA `ae846a93e6c34abaa2014295f79a73d672b1443f` → commit `63c35e66580c72cb076ef612d24655bbf003aaa0`.
+- Wheel: `dist/teller_agent-0.1.0-py3-none-any.whl` (63230 bytes, SHA-256 `384022a0f94947977467151568bee46326b0a03141b25e9cd97183541216179f`).
+- Sdist: `dist/teller_agent-0.1.0.tar.gz` (65871 bytes, SHA-256 `cb8cb06a35a1474595b4095c1d7803f5b5c7d8e9570ae9db6ab120eb4e114289`).
+- Distribution shape: private repo + wheel + invited install. PyPI publish paused (private repo would create a dead pointer).
+- Day-5 commits on main: `3fbbe3f` (post-audit copy reconciliation), `88ca710` (wheel-safe packaging hotfix), `63c35e6` (XBRL guardrails + CLI input validation + onboarding updates).
+**v0.1.0 ship-baseline regression (single run at the v0.1.0 commit):**
+- **Treasury:** 14/20 = 70 % (gate ≥13/20 per ADR-004; ±2 variance band). Recorded in `results/regression_twenty_20260427T234106Z.json`.
+- **SEC tier-1+2:** 15/18 = 83.3 % (gate ≥80 %). Three single-run fails: SEC0007 both-attempts-timeout/null, SEC0015 sign error, SEC0016 scale/format. SEC0017 PASSED today under the loose scorer (still v0.1.1 fix scope for the labeled-list format). Recorded in `results/gate_sec_20260428T171334Z.json`.
+- **SEC tier-3:** 7/7 = 100 % (gate ≥60 %). Strict `segment_level_dimensional` reason-code match held.
+- **Unit suite:** 61 passed, 1 skipped, 1 deselected.
+- **Fresh-clone install verified:** wheel install from `/tmp/.venv-v010-final` (Python 3.12.12) outside the repo. `teller --help`, `from teller import Agent, Corpus, Result`, and `Agent._recipe_path()` all resolve cleanly from site-packages. **This is the authoritative pre-distribution test going forward — wheel install from outside the repo, not editable install.**
+**v0.1.1 calendar (started 2026-04-28):** target ship 2026-05-08 (10 calendar days from `v0.1.0` tag). Non-negotiable per ADR-011. Scope: ADR-011 reasoning-trace persistence (load-bearing), SEC0017 labeled-list answer format, editable install `.pth` resolution (developer-ergonomics debt), Arelle warning suppression, CLI input validation extensions, latency-copy recalibration if first-recipient runs cluster above 180s. Stream-decode-as-retry-trigger waits on trace persistence. Detail in `DAY5_RETROSPECTIVE.md`.
+**Active blockers:** none. First-recipient round-trip gate is open but not blocking close.
 
 ## Bootstrap Checklist (Next-Session Entry Point)
 

@@ -19,6 +19,7 @@ htmlcov/
 !.env.example
 
 .venv/
+.venv-*/
 venv/
 env/
 
@@ -35,6 +36,13 @@ downloads/
 
 # Telemetry output (local dev)
 .teller/
+
+# Per-query stderr/JSON capture from manual test passes
+docs/dev/test_logs/
+
+# Regression / gate JSON artifacts (per-run timestamped output)
+results/regression_twenty_*.json
+results/gate_sec_*.json
 
 # Claude Code session state
 .claude/
