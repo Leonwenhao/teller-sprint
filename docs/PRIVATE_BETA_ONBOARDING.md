@@ -10,10 +10,12 @@ Requires Python ≥ 3.10 (tested on 3.12).
 
 ```
 pip install teller-agent
-export OPENROUTER_API_KEY=sk-or-v1-...       # https://openrouter.ai/keys
+export OPENROUTER_API_KEY=<your-openrouter-key>       # https://openrouter.ai/keys
 ```
 
 Goose is a prerequisite. macOS: `brew install block-goose-cli`. Linux: `curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | bash`. Verify with `goose --version`.
+
+Run `teller doctor` before your first query. It checks Python, package data, goose, your OpenRouter key, and trace-directory writability.
 
 ## First queries
 
@@ -30,29 +32,31 @@ teller download-sec AAPL --latest 10-K
 teller ask --corpus ./sec_data "What was Apple's revenue in fiscal year 2025?"
 ```
 
-Typical query: 60–120 seconds. Worst case under normal conditions: about 3 minutes. See "latency tail" below for the exception.
+Typical query: 60–120 seconds. Long single calls around five minutes have been observed. See "latency tail" below for the exception.
 
-## Please capture stderr
+## Please capture traces
 
-Run everything with `2>&1 | tee teller.log`:
+Every query writes a local JSON trace under `.teller/traces/` by default. You can change the location with `TELLER_TRACE_DIR=/path/to/traces` or disable it with `TELLER_TRACE_DISABLED=1`.
+
+Run surprising queries with stderr capture too:
 
 ```
 teller ask --corpus ./sec_data "..." 2>&1 | tee teller.log
 ```
 
-Teller emits operational signals to stderr that we find valuable in the first weeks. Email `teller.log` back whenever something surprises you.
+Email the trace JSON and `teller.log` back whenever something surprises you. Traces intentionally do not include `OPENROUTER_API_KEY`.
 
 ## Known v0.1 limitations
 
 Five things we know about. Naming them up front is cheaper than you discovering them.
 
-**1. Multi-year list answers come back in reporting order, not question order.** For questions like "total assets at the end of each of fiscal years 2024 and 2025," Teller emits the values in the order the filing reports them — typically latest-year-first — which is the opposite of the natural English order in the question. Both values are correct; the order may surprise your downstream parser. Addressed in v0.1.1 via explicit year labels on list answers.
+**1. Multi-year list normalization is conservative.** Teller normalizes labeled multi-period answers to `YEAR: value`. If the model emits an unlabeled list that cannot be mapped safely, Teller preserves the raw answer and records that in the trace.
 
 **2. Latency tail — occasional queries exceed 3 minutes.** About 5 % of queries will see a first-attempt stall, trigger an automatic retry, and return at 2–3× typical latency. You'll see exactly one stderr line: `teller: model timed out after 600s, retrying (attempt 2/2)...`. In day-4 regression both observed retries recovered; treat the returned answer normally and inspect XBRL/citations before relying on it. This is a known pattern of MiniMax M2.5 tail latency, not a Teller bug; we built the retry specifically for it.
 
-**3. Rare double-stall — both retry attempts time out.** We've seen this once in our regression testing. Real-world rate is unknown. When it happens you'll see `abstained=True, abstention_reason="timeout_600s"` on the Result. The honest answer today: we can't tell you why it stalled. Reasoning-trace persistence that would let us debug this is the first v0.1.1 item; target is 10 days from v0.1 tag. If you hit a double-stall, save the log file and send it over. It's the first data point we'd like to have.
+**3. Rare double-stall — both retry attempts time out.** We've seen this once in our regression testing. Real-world rate is unknown. When it happens you'll see `abstained=True, abstention_reason="timeout_600s"` on the Result. The trace records both attempts, but it may still not expose a provider-side root cause.
 
-**4. Stream-decode-class failures can look like structural failures.** `abstention_reason="no_answer_file_written"` usually means Teller or goose exited without producing the required answer file, but we have also seen provider-side stream decode errors produce the same visible outcome. In the latest pre-beta run this class appeared 5 times across Treasury + SEC, versus 1 on day 4; at least one was confirmed provider-side. If you see `no_answer_file_written`, send the full `teller.log` stderr output so we can separate structural failures from provider stream failures. v0.1.1 trace persistence will make this attribution positive instead of forensic.
+**4. Stream-decode-class failures are classified from provider stderr.** `provider_stream_error` means Teller saw provider/stream/decode signals and no answer file. `no_answer_file_written` means no answer file was produced without a provider signature. Send the trace either way.
 
 **5. Treat `agreed=false` as a review signal, not a final fraud alarm.** Teller's XBRL cross-check is conservative and now skips cases where the comparison is not meaningful, but residual edge cases will remain. Before treating `agreed=false` as a real Teller-vs-company disagreement, verify three things: the answer is numeric, the company in your question matches the downloaded corpus, and the period in your question matches the period being validated. If any of those are off, send the log and Result JSON rather than relying on the disagreement flag alone.
 

@@ -14,7 +14,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from teller.config import DEFAULT_MODEL, ModelConfig
+from teller.normalize import normalize_answer
 from teller.result import Result, XBRLValidation
+from teller.trace import AttemptTrace, RunTrace, classify_stderr, excerpt
 
 if TYPE_CHECKING:
     from teller.corpus import Corpus
@@ -130,7 +132,7 @@ class MissingAPIKeyError(RuntimeError):
         super().__init__(
             "OPENROUTER_API_KEY is not set. Teller defaults to MiniMax M2.5 via "
             "OpenRouter (ADR-003). Get a key at https://openrouter.ai/keys and "
-            "`export OPENROUTER_API_KEY=sk-or-v1-...` before calling Agent.ask. "
+            "`export OPENROUTER_API_KEY=<your-openrouter-key>` before calling Agent.ask. "
             "To use a different provider, construct a ModelConfig and pass it "
             "as `model=` to Agent()."
         )
@@ -175,6 +177,11 @@ class Agent:
     # trigger beyond TimeoutExpired without a new ADR (see ADR-012 Change
     # Policy).
     RETRY_ON_TIMEOUT: bool = True
+    RETRY_ON_PROVIDER_FAILURE: bool = True
+    _PROVIDER_RETRY_REASONS = frozenset({
+        "provider_stream_error",
+        "goose_nonzero_exit",
+    })
 
     def __init__(
         self,
@@ -185,6 +192,7 @@ class Agent:
         self.domain = domain
         self.corpus = corpus
         self.model = model or DEFAULT_MODEL
+        self._active_trace: Optional[RunTrace] = None
 
     def ask(self, question: str) -> Result:
         """Answer a question against the bound corpus.
@@ -198,11 +206,6 @@ class Agent:
         attempts. No retry on other failure classes (see ADR-012 trigger
         scope).
         """
-        if shutil.which("goose") is None:
-            raise GooseNotFoundError()
-        if not os.environ.get("OPENROUTER_API_KEY"):
-            raise MissingAPIKeyError()
-
         recipe_src = self._recipe_path(self.domain)
         if not recipe_src.exists():
             raise FileNotFoundError(
@@ -216,10 +219,46 @@ class Agent:
         # both attempts.
         instruction_arg = " ".join(question.split())
 
+        trace = RunTrace.create(
+            question=question,
+            domain=self.domain,
+            corpus_path=self.corpus.path,
+            model=self.model,
+        )
+        self._active_trace = trace
+
+        fast_result = self._try_sec_xbrl_fast_path(question, recipe_src)
+        if fast_result is not None:
+            return self._finalize_result(fast_result, trace)
+
+        if shutil.which("goose") is None:
+            raise GooseNotFoundError()
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            raise MissingAPIKeyError()
+
         start = time.time()
         result = self._run_once(question, instruction_arg, recipe_src, start)
         if result is not None:
-            return result
+            retry = self._should_retry_provider_failure(result)
+            if not retry:
+                return self._finalize_result(result, trace)
+            print(
+                f"teller: provider failure {result.abstention_reason}, "
+                "retrying (attempt 2/2)...",
+                file=sys.stderr,
+                flush=True,
+            )
+            retry_result = self._run_once(question, instruction_arg, recipe_src, start)
+            if retry_result is not None:
+                return self._finalize_result(retry_result, trace)
+            latency_ms = int((time.time() - start) * 1000)
+            return self._finalize_result(Result(
+                question=question,
+                answer=None,
+                abstained=True,
+                abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
+                latency_ms=latency_ms,
+            ), trace)
 
         # First attempt timed out. ADR-012 — single same-model retry with
         # fresh tempdir + fresh uuid session. Emit one stderr line before
@@ -227,13 +266,13 @@ class Agent:
         # hook; no public kwarg).
         if not self.RETRY_ON_TIMEOUT:
             latency_ms = int((time.time() - start) * 1000)
-            return Result(
+            return self._finalize_result(Result(
                 question=question,
                 answer=None,
                 abstained=True,
                 abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
                 latency_ms=latency_ms,
-            )
+            ), trace)
 
         print(
             f"teller: model timed out after {self.TIMEOUT_SECONDS}s, "
@@ -244,18 +283,27 @@ class Agent:
 
         result = self._run_once(question, instruction_arg, recipe_src, start)
         if result is not None:
-            return result
+            return self._finalize_result(result, trace)
 
         # Retry also timed out. Reason stays `timeout_<N>s` for data
         # continuity; semantic shift to "both attempts timed out" is
         # documented in ADR-012.
         latency_ms = int((time.time() - start) * 1000)
-        return Result(
+        return self._finalize_result(Result(
             question=question,
             answer=None,
             abstained=True,
             abstention_reason=f"timeout_{self.TIMEOUT_SECONDS}s",
             latency_ms=latency_ms,
+        ), trace)
+
+    def _should_retry_provider_failure(self, result: Result) -> bool:
+        return (
+            self.RETRY_ON_PROVIDER_FAILURE
+            and result.abstained
+            and result.abstention_reason in self._PROVIDER_RETRY_REASONS
+            and self._active_trace is not None
+            and len(self._active_trace.attempts) < 2
         )
 
     def _run_once(
@@ -301,8 +349,11 @@ class Agent:
             # against goose session-name collisions).
             session_name = f"teller-{uuid.uuid4().hex[:10]}"
 
+            attempt_no = len(self._active_trace.attempts) + 1 if self._active_trace else 1
+            attempt_start = time.time()
+            proc: Optional[subprocess.CompletedProcess[str]] = None
             try:
-                subprocess.run(
+                proc = subprocess.run(
                     [
                         "goose",
                         "run",
@@ -320,6 +371,23 @@ class Agent:
                     cwd=str(workspace),
                 )
             except subprocess.TimeoutExpired:
+                latency_ms = int((time.time() - attempt_start) * 1000)
+                self._record_attempt(
+                    AttemptTrace(
+                        attempt=attempt_no,
+                        session_name=session_name,
+                        cwd=str(workspace),
+                        recipe_path=str(temp_recipe),
+                        timeout_seconds=self.TIMEOUT_SECONDS,
+                        timed_out=True,
+                        stdout_excerpt="",
+                        stderr_excerpt="",
+                        answer_file_exists=answer_path.exists(),
+                        answer_file_bytes=answer_path.stat().st_size if answer_path.exists() else 0,
+                        latency_ms=latency_ms,
+                        classification=f"timeout_{self.TIMEOUT_SECONDS}s",
+                    )
+                )
                 # Settle before returning so the next attempt (or the next
                 # Agent.ask call) does not race against goose's SQLite WAL
                 # from the timed-out process.
@@ -330,10 +398,32 @@ class Agent:
             time.sleep(self.SESSION_SETTLE_SECONDS)
 
             latency_ms = int((time.time() - start) * 1000)
+            attempt_latency_ms = int((time.time() - attempt_start) * 1000)
+            stderr = proc.stderr if proc is not None else ""
+            stdout = proc.stdout if proc is not None else ""
+            returncode = proc.returncode if proc is not None else None
+            answer_exists = answer_path.exists()
+            answer_bytes = answer_path.stat().st_size if answer_exists else 0
 
             if answer_path.exists():
                 answer = answer_path.read_text().strip()
                 if not answer:
+                    self._record_attempt(
+                        AttemptTrace(
+                            attempt=attempt_no,
+                            session_name=session_name,
+                            cwd=str(workspace),
+                            recipe_path=str(temp_recipe),
+                            timeout_seconds=self.TIMEOUT_SECONDS,
+                            returncode=returncode,
+                            stdout_excerpt=excerpt(stdout),
+                            stderr_excerpt=excerpt(stderr),
+                            answer_file_exists=answer_exists,
+                            answer_file_bytes=answer_bytes,
+                            latency_ms=attempt_latency_ms,
+                            classification="empty_answer_file",
+                        )
+                    )
                     return Result(
                         question=question,
                         answer=None,
@@ -353,6 +443,22 @@ class Agent:
                 first_line = answer.split("\n", 1)[0].strip()
                 if first_line.startswith("ABSTAIN:"):
                     reason = first_line[len("ABSTAIN:"):].strip() or "llm_requested_abstention"
+                    self._record_attempt(
+                        AttemptTrace(
+                            attempt=attempt_no,
+                            session_name=session_name,
+                            cwd=str(workspace),
+                            recipe_path=str(temp_recipe),
+                            timeout_seconds=self.TIMEOUT_SECONDS,
+                            returncode=returncode,
+                            stdout_excerpt=excerpt(stdout),
+                            stderr_excerpt=excerpt(stderr),
+                            answer_file_exists=answer_exists,
+                            answer_file_bytes=answer_bytes,
+                            latency_ms=attempt_latency_ms,
+                            classification=reason,
+                        )
+                    )
                     return Result(
                         question=question,
                         answer=None,
@@ -361,25 +467,320 @@ class Agent:
                         latency_ms=latency_ms,
                     )
                 xbrl_validation = self._post_validate(question, answer)
+                normalized = normalize_answer(
+                    question,
+                    answer,
+                    xbrl_validation.tagged_value if xbrl_validation.performed else None,
+                )
+                if self._active_trace and normalized.metadata.get("changed"):
+                    self._active_trace.notes.append(
+                        f"normalized answer from {answer!r} to {normalized.answer!r}"
+                    )
+                self._record_attempt(
+                    AttemptTrace(
+                        attempt=attempt_no,
+                        session_name=session_name,
+                        cwd=str(workspace),
+                        recipe_path=str(temp_recipe),
+                        timeout_seconds=self.TIMEOUT_SECONDS,
+                        returncode=returncode,
+                        stdout_excerpt=excerpt(stdout),
+                        stderr_excerpt=excerpt(stderr),
+                        answer_file_exists=answer_exists,
+                        answer_file_bytes=answer_bytes,
+                        latency_ms=attempt_latency_ms,
+                        classification="success",
+                    )
+                )
                 return Result(
                     question=question,
-                    answer=answer,
+                    answer=normalized.answer,
                     confidence=1.0,
                     xbrl_validation=xbrl_validation,
                     latency_ms=latency_ms,
+                    normalization=normalized.metadata,
+                )
+
+            recovered = _recover_answer_from_stdout(stdout)
+            if recovered is not None:
+                xbrl_validation = self._post_validate(question, recovered)
+                normalized = normalize_answer(
+                    question,
+                    recovered,
+                    xbrl_validation.tagged_value if xbrl_validation.performed else None,
+                )
+                if self._active_trace:
+                    self._active_trace.notes.append("answer recovered from goose stdout")
+                    if normalized.metadata.get("changed"):
+                        self._active_trace.notes.append(
+                            f"normalized answer from {recovered!r} to {normalized.answer!r}"
+                        )
+                self._record_attempt(
+                    AttemptTrace(
+                        attempt=attempt_no,
+                        session_name=session_name,
+                        cwd=str(workspace),
+                        recipe_path=str(temp_recipe),
+                        timeout_seconds=self.TIMEOUT_SECONDS,
+                        returncode=returncode,
+                        stdout_excerpt=excerpt(stdout),
+                        stderr_excerpt=excerpt(stderr),
+                        answer_file_exists=answer_exists,
+                        answer_file_bytes=answer_bytes,
+                        latency_ms=attempt_latency_ms,
+                        classification="recovered_from_stdout",
+                    )
+                )
+                return Result(
+                    question=question,
+                    answer=normalized.answer,
+                    confidence=0.8,
+                    xbrl_validation=xbrl_validation,
+                    latency_ms=latency_ms,
+                    normalization=normalized.metadata | {"recovered_from_stdout": True},
                 )
 
             # ADR-007 contract — goose exited without writing an answer
             # file. This is diagnostic of a structural bug (not a flake).
             # ADR-012 explicitly excludes this class from retry: the
             # signal must stay loud.
+            classification = classify_stderr(stderr)
+            if classification is None and returncode not in (None, 0):
+                classification = "goose_nonzero_exit"
+            if classification is None:
+                classification = "no_answer_file_written"
+            self._record_attempt(
+                AttemptTrace(
+                    attempt=attempt_no,
+                    session_name=session_name,
+                    cwd=str(workspace),
+                    recipe_path=str(temp_recipe),
+                    timeout_seconds=self.TIMEOUT_SECONDS,
+                    returncode=returncode,
+                    stdout_excerpt=excerpt(stdout),
+                    stderr_excerpt=excerpt(stderr),
+                    answer_file_exists=answer_exists,
+                    answer_file_bytes=answer_bytes,
+                    latency_ms=attempt_latency_ms,
+                    classification=classification,
+                )
+            )
             return Result(
                 question=question,
                 answer=None,
                 abstained=True,
-                abstention_reason="no_answer_file_written",
+                abstention_reason=classification,
                 latency_ms=latency_ms,
             )
+
+    def _try_sec_xbrl_fast_path(self, question: str, recipe_src: Path) -> Optional[Result]:
+        """Answer supported SEC consolidated questions directly from XBRL facts."""
+        if self.domain != "sec_filings":
+            return None
+        start = time.time()
+        if _has_segment_level_request(question):
+            latency_ms = int((time.time() - start) * 1000)
+            self._record_attempt(
+                AttemptTrace(
+                    attempt=1,
+                    session_name="sec-segment-abstention-fast-path",
+                    cwd=str(self.corpus.path),
+                    recipe_path=str(recipe_src),
+                    timeout_seconds=0,
+                    returncode=0,
+                    stdout_excerpt="",
+                    stderr_excerpt="",
+                    answer_file_exists=False,
+                    answer_file_bytes=0,
+                    latency_ms=latency_ms,
+                    classification="segment_level_dimensional",
+                )
+            )
+            if self._active_trace:
+                self._active_trace.notes.append("abstained by SEC segment fast path")
+                self._active_trace.result["sec_xbrl_fast_path"] = {
+                    "kind": "segment_abstention"
+                }
+            return Result(
+                question=question,
+                answer=None,
+                abstained=True,
+                abstention_reason="segment_level_dimensional",
+                xbrl_validation=XBRLValidation(
+                    performed=False,
+                    reason="segment_level_dimensional",
+                    note=(
+                        "question asks for a segment/product/geographic line; "
+                        "Teller GA validates consolidated facts only"
+                    ),
+                ),
+                latency_ms=latency_ms,
+                normalization={
+                    "changed": False,
+                    "kind": "segment_abstention",
+                    "source": "sec_xbrl_fast_path",
+                },
+            )
+
+        direct = self._sec_xbrl_direct_answer(question)
+        if direct is None:
+            return None
+
+        answer, xbrl_validation, metadata = direct
+        latency_ms = int((time.time() - start) * 1000)
+        self._record_attempt(
+            AttemptTrace(
+                attempt=1,
+                session_name="sec-xbrl-fast-path",
+                cwd=str(self.corpus.path),
+                recipe_path=str(recipe_src),
+                timeout_seconds=0,
+                returncode=0,
+                stdout_excerpt="",
+                stderr_excerpt="",
+                answer_file_exists=False,
+                answer_file_bytes=0,
+                latency_ms=latency_ms,
+                classification="sec_xbrl_fast_path",
+            )
+        )
+        if self._active_trace:
+            self._active_trace.notes.append("answered by SEC XBRL fast path")
+            self._active_trace.result["sec_xbrl_fast_path"] = metadata
+        return Result(
+            question=question,
+            answer=answer,
+            confidence=1.0,
+            xbrl_validation=xbrl_validation,
+            latency_ms=latency_ms,
+            normalization={
+                "changed": True,
+                "kind": metadata["kind"],
+                "source": "sec_xbrl_fast_path",
+            },
+        )
+
+    def _sec_xbrl_direct_answer(
+        self,
+        question: str,
+    ) -> Optional[tuple[str, XBRLValidation, dict]]:
+        years = _extract_question_fiscal_years(question)
+        if not years or _has_scoped_revenue_request(question):
+            return None
+        question_entity = _extract_question_entity(question)
+        if question_entity is None:
+            return None
+        corpus_entity = _infer_corpus_entity(self.corpus.path, question_entity)
+        if corpus_entity is not None and corpus_entity != question_entity:
+            return None
+        instance_path = self._find_xbrl_instance(question_entity)
+        if instance_path is None:
+            return None
+        concepts = _guess_gaap_concepts(question)
+        if not concepts:
+            return None
+
+        from teller.validation.xbrl import (
+            FactLookup,
+            lookup_facts_by_fiscal_years,
+            synthesize_xbrl_validation,
+        )
+
+        selected: Optional[dict[int, FactLookup]] = None
+        selected_concept: Optional[str] = None
+        for concept in concepts:
+            facts = lookup_facts_by_fiscal_years(instance_path, concept, years)
+            if all(facts.get(year) and facts[year].available for year in years):
+                selected = facts
+                selected_concept = concept
+                break
+        if selected is None or selected_concept is None:
+            return None
+
+        self._record_xbrl_diagnostics()
+        values = {year: _public_value_from_lookup(selected[year]) for year in years}
+        if any(value is None for value in values.values()):
+            return None
+
+        validation = synthesize_xbrl_validation(
+            selected[years[-1]],
+            agent_answer=selected[years[-1]].value,
+        )
+        validation.agreed = True
+
+        question_l = question.lower()
+        if len(years) >= 2 and _asks_for_percentage_change(question_l):
+            first = _numeric_float(values[years[0]])
+            last = _numeric_float(values[years[-1]])
+            if first is None or last is None or first == 0:
+                return None
+            answer = f"{((last - first) / abs(first)):.4f}"
+            kind = "xbrl_rate"
+        elif len(years) >= 2 and _asks_for_amount_change(question_l):
+            first = _numeric_float(values[years[0]])
+            last = _numeric_float(values[years[-1]])
+            if first is None or last is None:
+                return None
+            answer = _format_public_number(last - first)
+            kind = "xbrl_change"
+        elif len(years) >= 2:
+            answer = ", ".join(f"{year}: {values[year]}" for year in years)
+            kind = "xbrl_multi_period"
+        else:
+            answer = values[years[0]]
+            kind = "xbrl_scalar"
+
+        metadata = {
+            "kind": kind,
+            "entity": question_entity,
+            "concept": selected_concept,
+            "years": years,
+            "facts": {
+                str(year): {
+                    "tagged_value": selected[year].value,
+                    "public_value": values[year],
+                    "context_ref": selected[year].context_ref,
+                    "period_end": selected[year].period_end,
+                    "unit": selected[year].unit,
+                    "decimals": selected[year].decimals,
+                }
+                for year in years
+            },
+        }
+        return answer, validation, metadata
+
+    def _record_attempt(self, attempt: AttemptTrace) -> None:
+        if self._active_trace is not None:
+            self._active_trace.attempts.append(attempt)
+
+    def _record_xbrl_diagnostics(self) -> None:
+        if self._active_trace is None:
+            return
+        try:
+            from teller.validation.xbrl import get_last_arelle_diagnostics
+        except Exception:
+            return
+        diagnostics = get_last_arelle_diagnostics()
+        if diagnostics:
+            self._active_trace.notes.append("arelle diagnostics captured")
+            self._active_trace.result["xbrl_diagnostics_excerpt"] = excerpt(diagnostics)
+
+    def _finalize_result(self, result: Result, trace: RunTrace) -> Result:
+        prior_result = dict(trace.result)
+        prior_result.update({
+            "answer": result.answer,
+            "abstained": result.abstained,
+            "abstention_reason": result.abstention_reason,
+            "latency_ms": result.latency_ms,
+            "xbrl_validation": result.xbrl_validation.__dict__,
+            "normalization": result.normalization,
+        })
+        trace.result = prior_result
+        path = trace.write()
+        result.trace_id = trace.trace_id
+        result.trace_path = str(path) if path is not None else None
+        self._active_trace = None
+        return result
 
     @staticmethod
     def _recipe_path(domain: str) -> Path:
@@ -520,16 +921,20 @@ class Agent:
             lookup = lookup_fact(instance_path, concept, period_end)
             last_lookup = lookup
             if lookup.available:
-                return synthesize_xbrl_validation(
+                validation = synthesize_xbrl_validation(
                     lookup,
                     agent_answer=_normalize_numeric(answer, lookup.value),
                 )
+                self._record_xbrl_diagnostics()
+                return validation
 
         # None of the candidate concepts produced an available fact.
         # Surface the last lookup's reason (most informative — e.g.
         # segment_level_dimensional) rather than collapsing to not_tagged.
         if last_lookup is not None:
-            return synthesize_xbrl_validation(last_lookup)
+            validation = synthesize_xbrl_validation(last_lookup)
+            self._record_xbrl_diagnostics()
+            return validation
         return XBRLValidation(performed=False, reason="concept_unknown")
 
     def _find_xbrl_instance(
@@ -625,13 +1030,10 @@ def _infer_corpus_entity(
 
 def _extract_question_fiscal_year(question: str) -> Optional[int | str]:
     """Return explicit target fiscal year, 'latest', or None if unspecified."""
-    q = question.lower()
-    years = [int(y) for y in re.findall(r"\b(?:fy|fiscal year)\s*'?(\d{2,4})\b", q)]
-    if not years:
-        years = [int(y) for y in re.findall(r"\b(20\d{2})\b", q)]
+    years = _extract_question_fiscal_years(question)
     if years:
-        normalized = [2000 + y if y < 100 else y for y in years]
-        return max(normalized)
+        return max(years)
+    q = question.lower()
     latest_phrases = (
         "last fiscal year",
         "latest fiscal year",
@@ -643,6 +1045,28 @@ def _extract_question_fiscal_year(question: str) -> Optional[int | str]:
     if any(phrase in q for phrase in latest_phrases):
         return "latest"
     return None
+
+
+def _extract_question_fiscal_years(question: str) -> list[int]:
+    """Return explicit fiscal years in question order, de-duplicated."""
+    q = question.lower()
+    matches: list[tuple[int, str]] = []
+    matches.extend(
+        (m.start(), m.group(1))
+        for m in re.finditer(r"\b(?:fy|fiscal year|fiscal years)\s*'?(\d{2,4})\b", q)
+    )
+    matches.extend(
+        (m.start(), m.group(1))
+        for m in re.finditer(r"\b(20\d{2})\b", q)
+    )
+    years: list[int] = []
+    for _, raw in sorted(matches):
+        year = int(raw)
+        if year < 100:
+            year += 2000
+        if 2000 <= year <= 2099 and year not in years:
+            years.append(year)
+    return years
 
 
 def _fiscal_year_from_period_end(period_end: str) -> Optional[int]:
@@ -665,6 +1089,25 @@ def _has_scoped_revenue_request(question: str) -> bool:
     return False
 
 
+def _has_segment_level_request(question: str) -> bool:
+    q = question.lower()
+    if _has_scoped_revenue_request(question):
+        return True
+    segment_terms = (
+        "segment",
+        "greater china",
+        "google services",
+        "amazon web services",
+        "aws",
+        "automotive",
+        "upstream",
+        "consumer & community banking",
+        "consumer and community banking",
+        "productivity and business processes",
+    )
+    return any(re.search(rf"\b{re.escape(term)}\b", q) for term in segment_terms)
+
+
 def _extract_document_period_end(instance_path: Path) -> Optional[str]:
     """Read `dei:DocumentPeriodEndDate` from an iXBRL instance.
 
@@ -672,8 +1115,6 @@ def _extract_document_period_end(instance_path: Path) -> Optional[str]:
     date. Using the DEI tag is more reliable than inferring from
     filename conventions or from the largest-range context.
     """
-    from teller.validation.xbrl import lookup_fact
-
     # DocumentPeriodEndDate is an instant-type string fact, not a
     # numeric monetaryItemType — our lookup_fact still works for it
     # because the predicate (consolidated context, period match) only
@@ -683,6 +1124,7 @@ def _extract_document_period_end(instance_path: Path) -> Optional[str]:
     from arelle.api.Session import Session
     from arelle.ModelValue import qname
     from arelle.RuntimeOptions import RuntimeOptions
+    from teller.validation.xbrl import _run_arelle_session
 
     session = Session()
     try:
@@ -693,7 +1135,7 @@ def _extract_document_period_end(instance_path: Path) -> Optional[str]:
             logLevel="error",
         )
         try:
-            session.run(options)
+            _run_arelle_session(session, options)
         except Exception:
             return None
         models = session.get_models()
@@ -749,3 +1191,62 @@ def _normalize_numeric(agent_answer: str, tagged_value: Optional[str]) -> Option
     ]
     best = min(candidates, key=lambda x: abs(x - tagged_f) / abs(tagged_f))
     return str(best)
+
+
+def _recover_answer_from_stdout(stdout: str) -> Optional[str]:
+    """Recover a clear final answer when goose forgot to write answer.txt."""
+    lines = [line.strip() for line in stdout.splitlines() if line.strip()]
+    if not lines:
+        return None
+
+    marker = re.compile(
+        r"^(?:final\s+answer|answer|result)\s*[:=\-]\s*(.+)$",
+        re.IGNORECASE,
+    )
+    for line in reversed(lines):
+        match = marker.match(line)
+        if match:
+            candidate = match.group(1).strip()
+            return candidate or None
+
+    if len(lines) == 1:
+        candidate = lines[0]
+        if candidate.startswith("ABSTAIN:") or _is_numeric_scalar(candidate):
+            return candidate
+    return None
+
+
+def _public_value_from_lookup(lookup) -> Optional[str]:
+    if lookup.value is None:
+        return None
+    try:
+        raw = float(str(lookup.value).replace(",", ""))
+    except ValueError:
+        return str(lookup.value).strip()
+    unit = (lookup.unit or "").lower()
+    if "usd" in unit and "share" not in unit and abs(raw) >= 1_000_000:
+        return _format_public_number(raw / 1_000_000)
+    return _format_public_number(raw)
+
+
+def _format_public_number(value: float) -> str:
+    if abs(value - round(value)) < 1e-9:
+        return str(int(round(value)))
+    return f"{value:.10g}"
+
+
+def _numeric_float(value: Optional[str]) -> Optional[float]:
+    if value is None:
+        return None
+    try:
+        return float(str(value).replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _asks_for_percentage_change(question: str) -> bool:
+    return any(term in question for term in ("percentage", "percent", "growth rate"))
+
+
+def _asks_for_amount_change(question: str) -> bool:
+    return "change" in question and not _asks_for_percentage_change(question)

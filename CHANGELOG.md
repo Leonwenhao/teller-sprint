@@ -7,6 +7,20 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Local JSON trace persistence for every `Agent.ask()` call, with `trace_id` and `trace_path` on `Result`.
+- `teller doctor` runtime diagnostics for Python, package data, goose, OpenRouter key, and trace directory.
+- Conservative output normalization for labeled multi-period answers, rates, and SEC monetary values.
+- `Result.to_dataframe()` with optional `pandas` support via `teller-agent[dataframe]`.
+- `scripts/release_check.py` for non-live GA release checks.
+
+### Changed
+- Suppressed normal user-facing Arelle diagnostic noise while preserving diagnostics for debug/trace inspection.
+- Updated package metadata to SPDX license syntax and added the `dataframe` optional extra.
+
+### Fixed
+- Provider stream/decode failures are now distinguishable from generic `no_answer_file_written` when stderr contains provider signatures.
+
 ## [0.1.0] — 2026-04-22
 
 ### Added

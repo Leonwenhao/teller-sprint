@@ -56,6 +56,10 @@ shifts every period by one day and poisons multi-period lookups.
 """
 from __future__ import annotations
 
+import contextlib
+import io
+import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Optional
@@ -85,6 +89,31 @@ _NOTE_BY_REASON: dict[str, str] = {
         "re-run `teller download-sec` to populate it"
     ),
 }
+
+_LAST_ARELLE_DIAGNOSTICS = ""
+
+
+def get_last_arelle_diagnostics() -> str:
+    """Return raw diagnostics captured from the most recent arelle run."""
+    return _LAST_ARELLE_DIAGNOSTICS
+
+
+def _run_arelle_session(session, options) -> bool:
+    """Run arelle while suppressing normal noisy diagnostics.
+
+    Known-benign iXBRL warnings are still preserved in
+    `_LAST_ARELLE_DIAGNOSTICS` and are printed only when
+    `TELLER_DEBUG_XBRL=1` is set by the CLI.
+    """
+    global _LAST_ARELLE_DIAGNOSTICS
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        ok = session.run(options)
+    _LAST_ARELLE_DIAGNOSTICS = stdout.getvalue() + stderr.getvalue()
+    if os.environ.get("TELLER_DEBUG_XBRL") == "1" and _LAST_ARELLE_DIAGNOSTICS:
+        print(_LAST_ARELLE_DIAGNOSTICS, file=sys.stderr, end="")
+    return ok
 
 
 @dataclass
@@ -166,7 +195,7 @@ def lookup_fact(
             logLevel="warning",
         )
         try:
-            ok = session.run(options)
+            ok = _run_arelle_session(session, options)
         except Exception as e:
             return _classify_load_exception(e, concept)
 
@@ -217,6 +246,67 @@ def lookup_fact(
             decimals=str(chosen.decimals) if chosen.decimals is not None else None,
             concept=concept,
         )
+    finally:
+        try:
+            session.close()
+        except Exception:
+            pass
+
+
+def lookup_facts_by_fiscal_years(
+    instance_path: Path | str,
+    concept: str,
+    fiscal_years: list[int],
+) -> dict[int, FactLookup]:
+    """Look up consolidated facts for explicit fiscal years.
+
+    This powers Teller's SEC fast path for simple consolidated questions.
+    It intentionally preserves the same fail-closed Arelle behavior as
+    `lookup_fact`, but selects facts by fiscal year rather than a single
+    filing period end so multi-period 10-K questions can be answered
+    directly from tagged facts without invoking the LLM.
+    """
+    if not fiscal_years:
+        return {}
+
+    from arelle.api.Session import Session
+    from arelle.ModelValue import qname
+    from arelle.RuntimeOptions import RuntimeOptions
+
+    wanted = list(dict.fromkeys(fiscal_years))
+    session = Session()
+    try:
+        options = RuntimeOptions(
+            entrypointFile=str(instance_path),
+            internetConnectivity="offline",
+            keepOpen=True,
+            logLevel="warning",
+        )
+        try:
+            ok = _run_arelle_session(session, options)
+        except Exception as e:
+            failed = _classify_load_exception(e, concept)
+            return {year: failed for year in wanted}
+
+        models = session.get_models()
+        if not models:
+            failed = FactLookup(available=False, reason="xbrl_unreadable", concept=concept)
+            return {year: failed for year in wanted}
+        model_xbrl = models[0]
+        if not ok or _has_blocking_errors(model_xbrl):
+            failed = FactLookup(available=False, reason="xbrl_unreadable", concept=concept)
+            return {year: failed for year in wanted}
+
+        target = qname(concept, model_xbrl.prefixedNamespaces)
+        if target is None:
+            failed = FactLookup(available=False, reason="not_tagged", concept=concept)
+            return {year: failed for year in wanted}
+
+        matching = model_xbrl.factsByQname.get(target, set())
+        return {
+            year: _lookup_consolidated_fact_for_year(matching, year, concept)
+            for year in wanted
+        }
     finally:
         try:
             session.close()
@@ -291,6 +381,84 @@ def _select_consolidated_fact(matching_facts, period_end: str):
     durations = [f for f in period_matches if f.context.isStartEndPeriod]
     chosen = durations[0] if durations else period_matches[0]
     return chosen, None
+
+
+def _lookup_consolidated_fact_for_year(
+    matching_facts,
+    fiscal_year: int,
+    concept: str,
+) -> FactLookup:
+    matching = list(matching_facts)
+    if not matching:
+        return FactLookup(available=False, reason="not_tagged", concept=concept)
+
+    consolidated = [f for f in matching if not f.context.qnameDims]
+    if not consolidated:
+        return FactLookup(
+            available=False,
+            reason="segment_level_dimensional",
+            concept=concept,
+        )
+
+    period_matches = [
+        f for f in consolidated
+        if _fiscal_year_from_context(f.context) == fiscal_year
+    ]
+    if not period_matches:
+        return FactLookup(available=False, reason="not_tagged", concept=concept)
+
+    durations = [f for f in period_matches if f.context.isStartEndPeriod]
+    if durations:
+        durations.sort(
+            key=lambda f: (
+                _duration_days(f.context),
+                _period_end_iso(f.context) or "",
+                f.contextID or "",
+            ),
+            reverse=True,
+        )
+        chosen = durations[0]
+    else:
+        period_matches.sort(
+            key=lambda f: (
+                _period_end_iso(f.context) or "",
+                f.contextID or "",
+            ),
+            reverse=True,
+        )
+        chosen = period_matches[0]
+
+    return FactLookup(
+        available=True,
+        value=str(chosen.value) if chosen.value is not None else None,
+        unit=str(chosen.unitID) if chosen.unitID else None,
+        context_ref=chosen.contextID,
+        period_start=_period_start_iso(chosen.context),
+        period_end=_period_end_iso(chosen.context),
+        decimals=str(chosen.decimals) if chosen.decimals is not None else None,
+        concept=concept,
+    )
+
+
+def _fiscal_year_from_context(context) -> Optional[int]:
+    period_end = _period_end_iso(context)
+    if period_end is None:
+        return None
+    try:
+        return int(period_end.split("-", 1)[0])
+    except ValueError:
+        return None
+
+
+def _duration_days(context) -> int:
+    start = getattr(context, "startDatetime", None)
+    end = getattr(context, "endDate", None)
+    if start is None or end is None:
+        return 0
+    try:
+        return (end - start.date()).days
+    except Exception:
+        return 0
 
 
 _NON_BLOCKING_ERROR_CODES = frozenset({

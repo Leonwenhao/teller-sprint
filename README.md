@@ -1,18 +1,37 @@
 # Teller
 
-Grounded reasoning agent for SEC filings and U.S. Treasury bulletins. MIT-licensed.
+Self-hosted financial reasoning dev kit for building traceable SEC filing
+agents. MIT-licensed.
 
 [![Sentient Arena Cohort 0 — highest accuracy on OfficeQA (71.5%)](https://img.shields.io/badge/Sentient_Arena_Cohort_0-71.5%25_on_OfficeQA_%7C_highest_accuracy-blue)](docs/research/final_report.md)
 
-**Teller cross-checks every answer against what the company reported to the SEC in XBRL. When the two disagree, Teller surfaces both values instead of hiding the conflict.** The tool is built to distinguish questions it can answer from questions it can't — not to confirm that the LLM guessed right.
+**Teller v0.1 is a public developer preview.** It is SEC-first: supported
+consolidated filing questions can be answered directly from company-reported
+XBRL facts, while unsupported segment/product/geographic questions abstain
+instead of guessing. LLM-backed paths remain available for experimentation and
+write local traces so failures are debuggable.
 
-v0.1 does two domains: **SEC filings** (10-K / 10-Q with XBRL cross-check) and **U.S. Treasury Bulletins** (1939–present). Default model is MiniMax M2.5 via OpenRouter; one-line swap to any other OpenRouter-served model.
+Use Teller as a CLI, a Python package, or an installable skill for coding
+agents such as Codex, Claude Code, Hermes, and similar tools.
+
+v0.1 includes:
+
+- **SEC filings**: 10-K / 10-Q download, local XBRL parsing, deterministic
+  answers for mapped consolidated metrics, stable multi-year output, and named
+  abstentions for unsupported segment questions.
+- **Experimental corpus Q&A**: Treasury-style document Q&A through goose plus an
+  OpenRouter model. This path is useful for development, but still has provider
+  latency and variance.
+- **Developer observability**: `teller doctor`, local JSON traces, named failure
+  classes, and a small `Result` object for notebooks or downstream tools.
 
 ---
 
 ## Install
 
-Requires Python 3.10+ (tested on 3.12). Goose is a prerequisite — Teller runs the model through it.
+Requires Python 3.10+ (tested on 3.12). Goose is needed for LLM fallback paths.
+The SEC XBRL fast path can answer supported filing questions without invoking a
+provider, but `teller doctor` expects the full local runtime for live use.
 
 ```bash
 # macOS
@@ -21,20 +40,23 @@ brew install block-goose-cli
 curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | bash
 
 pip install teller-agent
-export OPENROUTER_API_KEY=sk-or-v1-...    # https://openrouter.ai/keys
+export OPENROUTER_API_KEY=<your-openrouter-key>    # https://openrouter.ai/keys
 ```
 
 Verify:
 
 ```bash
 teller --help
+teller doctor
 python -c "from teller import Agent, Corpus, Result; print('ok')"
 ```
 
-## Quickstart — SEC filing with XBRL cross-check
+## Quickstart — SEC filing
 
 ```bash
 teller download-sec AAPL --latest 10-K    # caches to ./sec_data/AAPL/
+teller ask --domain sec_filings --corpus ./sec_data/AAPL \
+  "What was Apple's revenue in fiscal year 2025?"
 ```
 
 ```python
@@ -46,11 +68,47 @@ result = agent.ask("What was Apple's revenue in fiscal year 2025?")
 print(result.answer)                        # e.g. "416161"
 print(result.xbrl_validation.agreed)        # True / False / None
 print(result.xbrl_validation.tagged_value)  # the company's own XBRL-reported value
+print(result.trace_path)                    # local JSON trace for debugging
 ```
 
-If the extracted number and the XBRL-tagged value agree within tolerance, `agreed=True`. If they disagree, `agreed=False` and both values are surfaced. If the question isn't answerable from the XBRL facts available (e.g., a segment breakdown not tagged at that granularity), Teller sets `abstained=True` with a named `abstention_reason` — it does not guess.
+For supported consolidated SEC metrics, Teller can answer from tagged XBRL facts
+directly and set `xbrl_validation.agreed=True`. If the question asks for a
+segment/product/geographic breakdown that v0.1 does not support, Teller returns
+`abstained=True` with `abstention_reason="segment_level_dimensional"` instead
+of inventing a value.
 
-## Quickstart — Treasury Bulletin
+Multi-period SEC answers are labeled for downstream parsing:
+
+```text
+2024: 4002814, 2025: 4424900
+```
+
+## Use Teller As An Agent Skill
+
+The repo includes an installable skill for coding agents:
+
+- [skills/teller/SKILL.md](skills/teller/SKILL.md)
+
+For Codex-style local skills:
+
+```bash
+mkdir -p ~/.codex/skills
+cp -R skills/teller ~/.codex/skills/teller
+```
+
+For project-local use, keep `skills/teller/SKILL.md` in the repo and tell your
+agent:
+
+```text
+Use the Teller skill at skills/teller/SKILL.md to install, run, debug, or extend Teller.
+```
+
+For Claude Code, Hermes, or another skill-aware agent, copy the `skills/teller`
+folder into that agent's configured skills directory. The skill teaches the
+agent the safe install flow, `teller doctor`, SEC first query, trace collection,
+result interpretation, and contribution checks.
+
+## Experimental — Treasury Bulletin
 
 ```python
 from teller import Agent, Corpus
@@ -62,6 +120,10 @@ print(result.answer)      # e.g. "507"
 print(result.latency_ms)
 ```
 
+Treasury/general corpus Q&A is included for builders to inspect and improve, but
+it is not the primary v0.1 launch promise. Expect provider latency and variance
+on this path.
+
 ## What you get back
 
 Every call returns a `Result`:
@@ -71,32 +133,58 @@ Every call returns a `Result`:
 - `xbrl_validation` — SEC domain only. Fields: `performed`, `agreed`, `tagged_value`, `reason`. For non-SEC calls, `performed=False`.
 - `latency_ms` — end-to-end, inclusive of any retry.
 - `sources` — reserved citation field; v0.1 carries the auditable tagged fact via `xbrl_validation` for supported SEC metrics.
+- `trace_id`, `trace_path` — local diagnostics for each `Agent.ask()` call. Set `TELLER_TRACE_DIR` to choose the directory, or `TELLER_TRACE_DISABLED=1` to disable local trace files. Traces do not persist `OPENROUTER_API_KEY`.
+- `cost_usd` — reserved for future billing integration. v0.1 reports `0.0`; use OpenRouter billing for authoritative cost.
 
 ## Empirical characteristics
 
-**Latency.** Measured on MiniMax M2.5 + goose against real iXBRL 10-Ks:
+**Latency.** Recent SEC fast-path measurements against the fixture gate answer
+supported consolidated metrics in roughly 1-3 seconds per question on a local
+Mac. Segment abstentions are near-instant. LLM fallback paths remain dominated
+by goose/provider latency and can take minutes.
 
 | Case | Time |
 |---|---|
-| Typical end-to-end | 60–120 s |
-| Worst case observed | ~180 s (1.5 MB 10-K) |
-| Download phase (10-K + XBRL files) | ~5 s |
-| XBRL validation leg | ~200 ms |
+| Supported SEC XBRL fast path | ~1-3 s |
+| SEC segment abstention | <1 s |
+| Download phase (10-K + XBRL files) | ~5 s in prior smoke runs |
+| LLM fallback path | provider-dependent; minutes are possible |
 
-Under two minutes typical, about three minutes worst case. LLM + harness latency dominates; the XBRL leg itself is negligible.
+The core v0.1 launch path is SEC-first because it avoids provider latency for
+mapped consolidated metrics.
 
 **Accuracy.** Single-run results, honestly reported:
 
-- **Treasury:** 13/20 on the ADR-004 honest baseline (stratified 20-question set). Single-run variance on MiniMax M2.5 is ±2 passes and is documented in `docs/dev/ARCHITECTURE_DECISIONS.md` (ADR-004). A 15/20 run on day 4 sits within that band; 13/20 is the number we ship against.
-- **SEC:** 17/18 on tier-1+2 (94.4%) and 7/7 on tier-3 abstention with strict reason-code matching, in a single day-4 gate run. This is one run, not a high-water mark. The documented gate is ≥80% tier-1+2 and ≥60% tier-3.
+- **SEC:** the current SEC fixture gate passes through deterministic fast paths:
+  18/18 tier-1+2 and 7/7 tier-3 abstention in the latest local validation.
+- **Treasury:** prior live regression passed the project threshold, but this
+  remains an experimental LLM-backed path for v0.1 developer-preview users.
 
-**Retry-on-timeout.** Teller retries once on subprocess timeout (ADR-012). In day-4 regression, 2 of 45 inferences (4.4%) triggered a retry; both recovered. *Retry eliminates tail-latency failures that would be visibly flaky; accuracy is within measurement variance of prior runs.* Retry is a latency tax, not an accuracy lift.
+**Provider failures.** Teller classifies provider/stream failures, retries once
+on provider-class failures, and records the evidence in the trace. This improves
+debuggability; it is not a guarantee that provider-backed answers will always
+recover.
+
+## Operations
+
+Run `teller doctor` before the first live query. It checks Python, package data, goose, `OPENROUTER_API_KEY`, and trace-directory writability.
+
+Every `Agent.ask()` writes a local JSON trace by default. On abnormal CLI results, Teller prints the trace path. Include that trace when reporting failures.
 
 ## Known v0.1 limitations
 
-**1. Multi-year list answers come back in reporting order, not question order.** For "total assets at the end of each of fiscal years 2024 and 2025," Teller emits values in the order the filing reports them (typically latest-year-first), which is the opposite of natural English order. Both values are correct; ordering may surprise a downstream parser. Fix committed for v0.1.1: labeled-list answer format (`2024: 448980, 2025: 453475`). **v0.1.1 calendar: within 10 days of the v0.1 tag.**
+**1. Developer preview, not hosted GA.** v0.1 is a self-hosted dev kit. There is
+no hosted API or SLA.
 
-**2. Rare double-stall.** Observed once in regression; real-world rate unknown. The `Result` surfaces `abstained=True, abstention_reason="timeout_600s"`. We cannot yet tell you *why* it stalled. Reasoning-trace persistence (ADR-011) is the first v0.1.1 item.
+**2. SEC fast path is intentionally scoped.** It covers mapped consolidated
+metrics. Segment/product/geographic questions abstain unless a future
+contribution adds audited support.
+
+**3. Treasury/general corpus Q&A is experimental.** It uses the LLM fallback path
+and can have provider latency, timeouts, or answer variance.
+
+**4. `cost_usd` is not billing telemetry.** v0.1 reports `0.0`; use provider
+billing dashboards for authoritative cost.
 
 See `docs/PRIVATE_BETA_ONBOARDING.md` for the full known-issue list and `docs/dev/ARCHITECTURE_DECISIONS.md` for the decision log.
 
@@ -121,11 +209,13 @@ No regression evidence yet on non-default models; v0.2 will publish comparative 
 
 ## Roadmap
 
-- **v0.1 (now):** two domains, XBRL cross-check, retry-on-timeout, MiniMax M2.5 default.
-- **v0.1.1 (≤10 days from v0.1 tag):** reasoning-trace persistence (ADR-011); labeled-list answer format (SEC0017 fix).
-- **v0.2 (~2 weeks, user-driven):** shape set by first-wave feedback. Candidates include a sub-5 s XBRL-only fast path (ADR-009) and comparative accuracy on alternative models.
+- **v0.1 (now):** public developer preview, SEC XBRL fast path, trace
+  persistence, agent skill, CLI/Python package.
+- **v0.2:** shape set by first-wave builder feedback. Candidates include broader
+  SEC concept-family coverage, real cost telemetry, more provider adapters, and
+  comparative model evidence.
 - **v0.3:** a second vertical. Candidates include earnings-call transcripts and proxy / DEF 14A filings; picked based on who asks.
-- **v0.4:** hosted waitlist opens. Self-host remains the supported path.
+- **Hosted product:** out of scope for v0.1. Self-host remains the supported path.
 
 ## Evidence
 
@@ -142,6 +232,8 @@ src/teller/recipes/   # rendered goose recipes, shipped with the wheel
 examples/             # minimal scripts for each domain
 docs/research/        # Arena methodology + final report
 docs/dev/             # ADRs, sprint notes, retrospectives
+docs/pitch/           # concise product overview deck
+skills/teller/        # installable agent skill
 tests/                # unit suite (pytest)
 ```
 
@@ -152,4 +244,4 @@ MIT, see `LICENSE`. Bundled dependencies retain their own licenses; see `NOTICE`
 ## Contact
 
 Leon Liu — leon@dolores.research
-GitHub issues welcome. Private beta feedback: email directly.
+GitHub issues and contributions welcome.

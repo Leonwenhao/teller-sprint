@@ -211,9 +211,9 @@
       "question": "What was Microsoft's net income in each of fiscal years 2023, 2024, and 2025?",
       "pattern": "3-year series; tests comparatives extraction from single 10-K",
       "concept_hint": "us-gaap:NetIncomeLoss",
-      "expected_answer": "[101832, 88136, 72361]",
+      "expected_answer": "2023: 72361, 2024: 88136, 2025: 101832",
       "expected_answer_verified": true,
-      "answer_format_note": "Expected answer is a 3-tuple/list; scoring requires all three values within 1% tolerance."
+      "answer_format_note": "Expected answer is labeled by fiscal year; scoring requires all three values within 1% tolerance."
     },
     {
       "uid": "SEC0014",
@@ -249,7 +249,7 @@
       "question": "What were JPMorgan Chase's total assets at the end of each of fiscal years 2024 and 2025?",
       "pattern": "2-year instant series; financial-services scale ($3-4T)",
       "concept_hint": "us-gaap:Assets",
-      "expected_answer": "[4424900, 4002814]",
+      "expected_answer": "2024: 4002814, 2025: 4424900",
       "expected_answer_verified": true
     },
     {
@@ -261,7 +261,7 @@
       "question": "What were ExxonMobil's total assets at the end of each of fiscal years 2024 and 2025?",
       "pattern": "2-year instant series; energy-sector taxonomy",
       "concept_hint": "us-gaap:Assets",
-      "expected_answer": "[448980, 453475]",
+      "expected_answer": "2024: 453475, 2025: 448980",
       "expected_answer_verified": true
     },
     {

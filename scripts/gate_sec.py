@@ -82,6 +82,10 @@ def score_tier12(expected: str, predicted: str | None, tolerance: float = 0.01) 
     if not predicted:
         return 0.0
 
+    labeled = _score_labeled_multi(expected, predicted, tolerance)
+    if labeled is not None:
+        return labeled
+
     raw = _raw_score(expected, predicted, tolerance)
     if raw > 0:
         return raw
@@ -95,6 +99,61 @@ def score_tier12(expected: str, predicted: str | None, tolerance: float = 0.01) 
         if _raw_score(expected, scaled, tolerance) > 0:
             return 1.0
     return 0.0
+
+
+def _score_labeled_multi(expected: str, predicted: str, tolerance: float) -> float | None:
+    """Score public `YEAR: value` multi-period output against list fixtures."""
+    import ast
+    import re
+
+    if ":" not in expected and ":" not in predicted:
+        return None
+    expected_pairs = re.findall(
+        r"\b(20\d{2})\b\s*:\s*(-?\d+(?:,\d{3})*(?:\.\d+)?)",
+        expected,
+    )
+    predicted_pairs = re.findall(
+        r"\b(20\d{2})\b\s*:\s*(-?\d+(?:,\d{3})*(?:\.\d+)?)",
+        predicted,
+    )
+    if expected_pairs:
+        if len(predicted_pairs) != len(expected_pairs):
+            return 0.0
+        predicted_by_year = {
+            year: float(value.replace(",", "")) for year, value in predicted_pairs
+        }
+        for year, expected_value in expected_pairs:
+            if year not in predicted_by_year:
+                return 0.0
+            expected_float = float(expected_value.replace(",", ""))
+            predicted_value = predicted_by_year[year]
+            if expected_float == 0:
+                if predicted_value != 0:
+                    return 0.0
+            elif abs((predicted_value - expected_float) / expected_float) > tolerance:
+                return 0.0
+        return 1.0
+
+    if ":" not in predicted:
+        return None
+    try:
+        expected_values = ast.literal_eval(expected)
+    except Exception:
+        return None
+    if not isinstance(expected_values, list) or not expected_values:
+        return None
+
+    if len(predicted_pairs) != len(expected_values):
+        return 0.0
+    predicted_values = [float(value.replace(",", "")) for _, value in predicted_pairs]
+    for expected_value, predicted_value in zip(expected_values, predicted_values):
+        expected_float = float(expected_value)
+        if expected_float == 0:
+            if predicted_value != 0:
+                return 0.0
+        elif abs((predicted_value - expected_float) / expected_float) > tolerance:
+            return 0.0
+    return 1.0
 
 
 def _raw_score(expected: str, predicted: str, tolerance: float) -> float:

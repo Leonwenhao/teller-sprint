@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -11,6 +14,7 @@ import click
 from teller.agent import Agent
 from teller.corpus import Corpus
 from teller.downloaders import SecDownloader
+from teller.trace import environment_diagnostics
 
 
 # --------------------------------------------------------------------
@@ -62,6 +66,23 @@ def main() -> None:
     """Teller — grounded reasoning agent for SEC filings and enterprise docs."""
 
 
+@main.command("doctor")
+@click.option("--json", "as_json", is_flag=True, default=False, help="Emit diagnostics as JSON.")
+def doctor(as_json: bool) -> None:
+    """Check local Teller runtime prerequisites."""
+    checks = _doctor_checks()
+    ok = all(item["ok"] for item in checks)
+    payload = {"ok": ok, "checks": checks}
+    if as_json:
+        click.echo(json.dumps(payload, indent=2))
+    else:
+        for item in checks:
+            mark = "ok" if item["ok"] else "fail"
+            click.echo(f"{mark:4} {item['name']}: {item['detail']}")
+    if not ok:
+        sys.exit(1)
+
+
 @main.command("download-sec")
 @click.argument("ticker")
 @click.option(
@@ -88,9 +109,15 @@ def main() -> None:
     "--no-warm-xbrl",
     is_flag=True,
     default=False,
-    help="Skip taxonomy cache pre-population. The first `teller ask` against this "
-         "filing will have to populate the cache — typically adds 10–30 s on first "
-         "query. Use when you have no network post-download.",
+    help="Skip taxonomy cache pre-population. The ask path is offline-only, so "
+         "XBRL validation may return xbrl_taxonomy_uncached until you re-run "
+         "download-sec without this flag.",
+)
+@click.option(
+    "--debug-xbrl",
+    is_flag=True,
+    default=False,
+    help="Print raw Arelle diagnostics while warming the XBRL cache.",
 )
 def download_sec(
     ticker: str,
@@ -98,6 +125,7 @@ def download_sec(
     year: Optional[int],
     dest_dir: Optional[Path],
     no_warm_xbrl: bool,
+    debug_xbrl: bool,
 ) -> None:
     """Download a 10-K or 10-Q from EDGAR, plus the XBRL instance."""
     if form_latest is not None and year is not None:
@@ -106,6 +134,9 @@ def download_sec(
         )
         sys.exit(2)
     form = form_latest or "10-K"
+    previous_debug = os.environ.get("TELLER_DEBUG_XBRL")
+    if debug_xbrl:
+        os.environ["TELLER_DEBUG_XBRL"] = "1"
 
     dl = SecDownloader()
     try:
@@ -119,6 +150,12 @@ def download_sec(
     except Exception as exc:
         click.echo(f"error: {exc}", err=True)
         sys.exit(1)
+    finally:
+        if debug_xbrl:
+            if previous_debug is None:
+                os.environ.pop("TELLER_DEBUG_XBRL", None)
+            else:
+                os.environ["TELLER_DEBUG_XBRL"] = previous_debug
 
     click.echo(f"Downloaded {result.ticker} {result.form} (filed {result.filing_date}, "
                f"period {result.report_date})")
@@ -156,11 +193,18 @@ def download_sec(
     default=False,
     help="Emit the full Result as JSON instead of a human summary.",
 )
+@click.option(
+    "--debug-xbrl",
+    is_flag=True,
+    default=False,
+    help="Print raw Arelle diagnostics during SEC XBRL validation.",
+)
 def ask(
     question: str,
     corpus_dir: Path,
     domain: Optional[str],
     as_json: bool,
+    debug_xbrl: bool,
 ) -> None:
     """Run a grounded Q&A against the corpus."""
     if not question.strip():
@@ -179,7 +223,17 @@ def ask(
     pattern = _corpus_pattern_for(domain)
     corpus = Corpus(path=corpus_dir, pattern=pattern)
     agent = Agent(domain=domain, corpus=corpus)
-    result = agent.ask(question)
+    previous_debug = os.environ.get("TELLER_DEBUG_XBRL")
+    if debug_xbrl:
+        os.environ["TELLER_DEBUG_XBRL"] = "1"
+    try:
+        result = agent.ask(question)
+    finally:
+        if debug_xbrl:
+            if previous_debug is None:
+                os.environ.pop("TELLER_DEBUG_XBRL", None)
+            else:
+                os.environ["TELLER_DEBUG_XBRL"] = previous_debug
 
     if as_json:
         click.echo(json.dumps(result.to_dict(), indent=2, default=str))
@@ -201,6 +255,8 @@ def ask(
         if xv.note:
             click.echo(f"     {xv.note}")
     click.echo(f"   latency: {result.latency_ms} ms")
+    if result.trace_path and (result.abstained or (xv.performed and xv.agreed is False)):
+        click.echo(f"   trace: {result.trace_path}")
 
 
 @main.command("inspect")
@@ -237,6 +293,57 @@ def inspect(corpus_dir: Path) -> None:
     click.echo(f"XBRL validation: {'yes' if xbrl_available else 'no'}")
     if described.get("sample_files"):
         click.echo("sample files   : " + ", ".join(described["sample_files"]))
+
+def _doctor_checks() -> list[dict[str, object]]:
+    checks: list[dict[str, object]] = []
+    py_ok = sys.version_info >= (3, 10)
+    checks.append({
+        "name": "python",
+        "ok": py_ok,
+        "detail": sys.version.split()[0],
+    })
+
+    try:
+        import teller
+        import importlib.resources as resources
+
+        recipe = resources.files("teller") / "recipes" / "treasury.yaml"
+        recipes_ok = recipe.is_file()
+        import_detail = str(Path(teller.__file__).resolve())
+    except Exception as exc:
+        recipes_ok = False
+        import_detail = f"import failed: {exc}"
+    checks.append({"name": "package import", "ok": "failed" not in import_detail, "detail": import_detail})
+    checks.append({"name": "packaged recipes", "ok": recipes_ok, "detail": "treasury.yaml"})
+
+    env = environment_diagnostics()
+    goose_ok = bool(env.get("goose_path") and env.get("goose_version"))
+    checks.append({
+        "name": "goose",
+        "ok": goose_ok,
+        "detail": f"{env.get('goose_path')} {env.get('goose_version')}",
+    })
+
+    key_ok = bool(os.environ.get("OPENROUTER_API_KEY"))
+    checks.append({
+        "name": "OPENROUTER_API_KEY",
+        "ok": key_ok,
+        "detail": "set" if key_ok else "not set",
+    })
+
+    trace_dir = Path(os.environ.get("TELLER_TRACE_DIR", ".teller/traces")).resolve()
+    trace_ok = _trace_dir_writable(trace_dir)
+    checks.append({"name": "trace directory", "ok": trace_ok, "detail": str(trace_dir)})
+    return checks
+
+
+def _trace_dir_writable(trace_dir: Path) -> bool:
+    try:
+        trace_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=trace_dir, delete=True):
+            return True
+    except Exception:
+        return False
 
 
 if __name__ == "__main__":  # pragma: no cover

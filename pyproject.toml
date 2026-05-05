@@ -5,18 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "teller-agent"
 version = "0.1.0"
-description = "Grounded reasoning agent for enterprise document QA. XBRL-validated answers from SEC filings."
+description = "Self-hosted financial reasoning dev kit for traceable SEC filing agents."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.10"
 authors = [
     { name = "Leon Liu", email = "leon@dolores.research" },
 ]
-keywords = ["llm", "agent", "sec", "xbrl", "finance", "grounded-reasoning"]
+keywords = ["llm", "agent", "sec", "xbrl", "finance", "developer-tools", "grounded-reasoning"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -34,6 +33,9 @@ dependencies = [
 dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",
+]
+dataframe = [
+    "pandas>=2.0",
 ]
 
 [project.scripts]

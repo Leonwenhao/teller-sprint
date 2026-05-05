@@ -406,6 +406,7 @@ class SecDownloader:
             # is not installed (future optional-extra path).
             from arelle.api.Session import Session
             from arelle.RuntimeOptions import RuntimeOptions
+            from teller.validation.xbrl import _run_arelle_session
         except Exception as exc:  # pragma: no cover
             _LOG.warning("arelle unavailable; skipping XBRL cache warm: %s", exc)
             return False
@@ -420,7 +421,7 @@ class SecDownloader:
                 logLevel="warning",
                 cacheDirectory=cache_dir,
             )
-            ok = session.run(options)
+            ok = _run_arelle_session(session, options)
             if not ok:
                 _LOG.warning(
                     "XBRL cache warm-up reported not-ok for %s", instance_path

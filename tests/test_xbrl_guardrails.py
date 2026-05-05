@@ -139,3 +139,60 @@ def test_total_revenue_question_still_performs_validation(
     assert xv.performed is True
     assert xv.agreed is True
     assert xv.reason is None
+
+
+def test_sec_xbrl_fast_path_answers_multi_period_without_goose(
+    monkeypatch, tmp_path
+):
+    agent = _agent_for(tmp_path, "JPM", with_instance=True)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setenv("TELLER_TRACE_DIR", str(tmp_path / "traces"))
+    monkeypatch.setattr("teller.agent.shutil.which", lambda _name: None)
+    monkeypatch.setattr(
+        Agent,
+        "_find_xbrl_instance",
+        lambda self, preferred_entity=None: self.corpus.path / "jpm-20251231.htm",
+    )
+
+    def fake_lookup(instance_path, concept, fiscal_years):
+        assert concept == "us-gaap:Assets"
+        values = {2024: "4002814000000", 2025: "4424900000000"}
+        return {
+            year: FactLookup(
+                available=True,
+                value=values[year],
+                unit="usd",
+                context_ref=f"FY{year}",
+                period_end=f"{year}-12-31",
+                decimals="-6",
+                concept=concept,
+            )
+            for year in fiscal_years
+        }
+
+    monkeypatch.setattr("teller.validation.xbrl.lookup_facts_by_fiscal_years", fake_lookup)
+
+    result = agent.ask(
+        "What were JPMorgan Chase's total assets at the end of each of "
+        "fiscal years 2024 and 2025?"
+    )
+
+    assert result.answer == "2024: 4002814, 2025: 4424900"
+    assert result.xbrl_validation.performed is True
+    assert result.xbrl_validation.agreed is True
+    assert result.normalization["source"] == "sec_xbrl_fast_path"
+    assert result.trace_path is not None
+
+
+def test_sec_segment_fast_path_abstains_without_goose(monkeypatch, tmp_path):
+    agent = _agent_for(tmp_path, "AAPL", with_instance=True)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setenv("TELLER_TRACE_DIR", str(tmp_path / "traces"))
+    monkeypatch.setattr("teller.agent.shutil.which", lambda _name: None)
+
+    result = agent.ask("What were Apple's net sales in Greater China in fiscal year 2025?")
+
+    assert result.abstained is True
+    assert result.abstention_reason == "segment_level_dimensional"
+    assert result.xbrl_validation.reason == "segment_level_dimensional"
+    assert result.normalization["kind"] == "segment_abstention"

@@ -2,17 +2,16 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
 class Source:
-    """A citation supporting an extracted value.
+    """An optional citation supporting an extracted value.
 
-    Every `Result` carries a list of Source instances, one per piece of
-    evidence used to answer the question. `excerpt` is the exact passage;
-    `location` is a page or section reference usable for manual verification
-    in the source document.
+    `sources` is reserved for evidence records when a domain can provide
+    them. v0.1's SEC path carries its auditable tagged fact through
+    `xbrl_validation`; callers must not assume every `Result` has sources.
     """
 
     file: str
@@ -68,6 +67,9 @@ class Result:
     abstention_reason: Optional[str] = None
     cost_usd: float = 0.0
     latency_ms: int = 0
+    trace_id: Optional[str] = None
+    trace_path: Optional[str] = None
+    normalization: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         """Plain dict for JSON serialization."""
@@ -79,4 +81,19 @@ class Result:
         Flattens sources and xbrl_validation into scalar columns so rows
         can be stacked across a batch of Results with pandas.concat.
         """
-        raise NotImplementedError("Result.to_dataframe is stubbed in v0.1 day-1 scaffold")
+        try:
+            import pandas as pd
+        except ImportError as exc:  # pragma: no cover - depends on optional extra
+            raise ImportError(
+                "Result.to_dataframe() requires pandas. Install with "
+                "`pip install teller-agent[dataframe]`."
+            ) from exc
+
+        row = self.to_dict()
+        xv = row.pop("xbrl_validation", {}) or {}
+        for key, value in xv.items():
+            row[f"xbrl_validation.{key}"] = value
+        sources = row.pop("sources", [])
+        row["sources.count"] = len(sources)
+        row["sources"] = sources
+        return pd.DataFrame([row])
