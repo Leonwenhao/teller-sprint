@@ -1,0 +1,11 @@
+uid,category,question,answer,notes
+TELSEC0001,sec_scalar,What should Teller return for Apple's FY2025 revenue when using the SEC XBRL fast path?,416161,Supported consolidated SEC revenue metric.
+TELSEC0002,sec_scalar,What should Teller return for Tesla's diluted EPS in fiscal year 2025?,1.08,Supported consolidated EPS metric.
+TELSEC0003,sec_multi_period,What is the stable Teller answer format for JPMorgan Chase total assets at the end of fiscal years 2024 and 2025?,"2024: 4002814, 2025: 4424900",Multi-period answers must be year-labeled.
+TELSEC0004,sec_multi_period,What is the stable Teller answer format for ExxonMobil total assets at the end of fiscal years 2024 and 2025?,"2024: 453475, 2025: 448980",Multi-period answers must be year-labeled.
+TELSEC0005,sec_abstention,What abstention reason should Teller return for Apple's net sales in Greater China in fiscal year 2025?,segment_level_dimensional,Segment/geographic question must abstain.
+TELSEC0006,sec_abstention,What abstention reason should Teller return for Amazon Web Services revenue in fiscal year 2025?,segment_level_dimensional,Segment/product question must abstain.
+TELTRACE0001,observability,Which Result field should an agent preserve when reporting a failed Teller run?,trace_path,Trace collection is required for debugging.
+TELCOST0001,observability,What should an agent say about Teller v0.1 cost_usd?,not_real_billing_telemetry,cost_usd is reserved and reports 0.0 in v0.1.
+TELTREAS0001,treasury_experimental,How should EvoSkill classify Teller Treasury/general corpus Q&A in v0.1?,experimental,Treasury is useful for skill evolution but not the deterministic SEC launch path.
+TELFLOW0001,onboarding,What command should a new user run before the first live Teller query?,teller doctor,Doctor validates local runtime prerequisites.

@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 authors = [
     { name = "Leon Liu", email = "leon@dolores.research" },
 ]
-keywords = ["llm", "agent", "sec", "xbrl", "finance", "developer-tools", "grounded-reasoning"]
+keywords = ["llm", "agent", "sec", "xbrl", "finance", "developer-tools", "evoskill", "sentient", "grounded-reasoning"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",

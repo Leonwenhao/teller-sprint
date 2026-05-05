@@ -14,6 +14,11 @@ write local traces so failures are debuggable.
 Use Teller as a CLI, a Python package, or an installable skill for coding
 agents such as Codex, Claude Code, Hermes, and similar tools.
 
+Teller originated from **Sentient Arena Cohort 0**, where its default agent
+strategy won the OfficeQA benchmark track. The repo now includes an
+**EvoSkill-compatible integration** so builders can use Sentient's EvoSkill loop
+to evolve Teller agent skills from real financial-QA failures.
+
 v0.1 includes:
 
 - **SEC filings**: 10-K / 10-Q download, local XBRL parsing, deterministic
@@ -24,6 +29,9 @@ v0.1 includes:
   latency and variance.
 - **Developer observability**: `teller doctor`, local JSON traces, named failure
   classes, and a small `Result` object for notebooks or downstream tools.
+- **Sentient ecosystem path**: an EvoSkill example that evolves Teller skills
+  across Claude Code, Codex, OpenCode, OpenHands, Goose, and other supported
+  agent runtimes.
 
 ---
 
@@ -107,6 +115,36 @@ For Claude Code, Hermes, or another skill-aware agent, copy the `skills/teller`
 folder into that agent's configured skills directory. The skill teaches the
 agent the safe install flow, `teller doctor`, SEC first query, trace collection,
 result interpretation, and contribution checks.
+
+## Evolve Teller Skills With EvoSkill
+
+Teller includes a first-class
+[EvoSkill](https://github.com/sentient-agi/EvoSkill) example:
+
+- [examples/evoskill_teller/](examples/evoskill_teller/)
+
+EvoSkill is Sentient's toolkit for automatically discovering and improving
+agent skills from benchmark failures. Teller uses it as an ecosystem integration,
+not a runtime dependency: the core `teller-agent` package stays small and
+deterministic, while EvoSkill can evolve the surrounding agent workflows.
+
+```bash
+cd examples/evoskill_teller
+bash setup.sh
+
+# Claude Code path
+export ANTHROPIC_API_KEY=<your-anthropic-key>
+evoskill run --verbose
+
+# OpenRouter path
+export OPENROUTER_API_KEY=<your-openrouter-key>
+evoskill run --verbose --config .evoskill/config.openrouter.toml
+```
+
+Use this path to improve Teller's install flow, SEC/Treasury question
+classification, trace handling, stable answer formatting, and abstention
+discipline. Good EvoSkill discoveries should be ported back into
+[skills/teller/SKILL.md](skills/teller/SKILL.md).
 
 ## Experimental — Treasury Bulletin
 
@@ -230,6 +268,7 @@ src/teller/           # package
 src/teller/prompts/   # Jinja templates (base + domain overlays), shipped with the wheel
 src/teller/recipes/   # rendered goose recipes, shipped with the wheel
 examples/             # minimal scripts for each domain
+examples/evoskill_teller/ # Sentient EvoSkill integration for evolving Teller skills
 docs/research/        # Arena methodology + final report
 docs/dev/             # ADRs, sprint notes, retrospectives
 docs/pitch/           # concise product overview deck

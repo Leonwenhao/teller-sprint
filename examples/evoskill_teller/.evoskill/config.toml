@@ -1,0 +1,29 @@
+# EvoSkill configuration for Teller using Claude Code.
+
+[harness]
+name = "claude"
+model = "anthropic/claude-sonnet-4-6"
+data_dirs = [
+    "data",
+]
+timeout_seconds = 600
+max_retries = 2
+
+[evolution]
+mode = "skill_only"
+iterations = 3
+frontier_size = 2
+concurrency = 2
+no_improvement_limit = 3
+failure_samples = 2
+
+[dataset]
+path = "data/teller_evoskill_sample.csv"
+question_column = "question"
+ground_truth_column = "answer"
+category_column = "category"
+train_ratio = 0.4
+val_ratio = 0.3
+
+[scorer]
+type = "multi_tolerance"
